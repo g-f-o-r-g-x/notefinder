@@ -152,7 +152,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				widget.NewLabelWithStyle(headerText, fyne.TextAlignCenter,
 					fyne.TextStyle{Bold: true}))
 
-			authorLabel := widget.NewLabel("Author: Sergey Skobelev")
+			authorLabel := widget.NewLabel("Author: Sergey S.")
 			licenseLink := widget.NewHyperlink("License", &url.URL{
 				Scheme: "https",
 				Host:   "opensource.org",
