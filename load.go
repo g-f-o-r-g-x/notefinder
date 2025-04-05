@@ -55,6 +55,8 @@ func load(ctx *Context) {
 			switch req {
 			case RequestLoadData:
 				doWork()
+			case RequestStop:
+				return
 			}
 		}
 	}
