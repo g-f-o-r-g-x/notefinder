@@ -1,0 +1,38 @@
+NAME = notefinder
+
+prefix = @prefix@
+bindir = @bindir@
+exec_prefix = @exec_prefix@
+
+CGO_CFLAGS = @CGO_CFLAGS@
+CGO_LDFLAGS = @CGO_LDFLAGS@
+
+PERL_VENDORLIB = @PERL_VENDORLIB@
+
+datarootdir = @datarootdir@
+applicationsdir = $(datarootdir)/applications
+iconsdir = $(datarootdir)/icons/hicolor/64x64/apps
+
+all: compile
+
+compile:
+	CGO_CFLAGS="$(CGO_CFLAGS) -Wno-builtin-macro-redefined" \
+	CGO_LDFLAGS="$(CGO_LDFLAGS)" \
+	go build -o $(NAME) .
+
+install: compile
+	mkdir -p $(DESTDIR)$(bindir)
+	install -m 0755 $(NAME) $(DESTDIR)$(bindir)/$(NAME).new
+	mv -f $(DESTDIR)$(bindir)/$(NAME).new $(DESTDIR)$(bindir)/$(NAME)
+	mkdir -p $(DESTDIR)$(PERL_VENDORLIB)
+	cp ./Notefinder.pm $(DESTDIR)$(PERL_VENDORLIB)/Notefinder.pm
+	mkdir -p $(DESTDIR)$(applicationsdir)
+	cp notefinder.desktop $(DESTDIR)$(applicationsdir)/notefinder.desktop
+	mkdir -p $(DESTDIR)$(iconsdir)
+	cp images/notefinder.png $(DESTDIR)$(iconsdir)/notefinder.png
+
+uninstall:
+	rm -f $(DESTDIR)$(bindir)/$(NAME)
+	rm -f $(DESTDIR)$(PERL_VENDORLIB)/Notefinder.pm
+	rm -f $(DESTDIR)$(applicationsdir)/notefinder.desktop
+	rm -f $(DESTDIR)$(iconsdir)/notefinder.png

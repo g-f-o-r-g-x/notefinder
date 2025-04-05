@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Notefinder
+Comment=Note-taking application
+Exec=notefinder
+Icon=notefinder
+Terminal=false
+Categories=Utility;
