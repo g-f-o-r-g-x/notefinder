@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/user"
+	"path/filepath"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -59,4 +62,33 @@ func (self *MozillaImplementation) UpdateData(oldNote *Note, newNote *Note) erro
 
 func (self *MozillaImplementation) DeleteData(note *Note) error {
 	return errors.New("Deleting bookmarks is not currently supported")
+}
+
+func getMozillaFiles() []string {
+	files := make([]string, 0)
+
+	user, _ := user.Current()
+	baseDir := filepath.Join(user.HomeDir, ".mozilla/firefox")
+
+	items, err := os.ReadDir(baseDir)
+	if err == nil {
+		for _, f := range items {
+			if !f.IsDir() || !strings.Contains(f.Name(), "default") {
+				continue
+			}
+
+			placesFile := filepath.Join(baseDir, f.Name(), "places.sqlite")
+			_, err := os.Stat(placesFile)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			files = append(files, placesFile)
+		}
+	} else {
+		log.Println(err)
+	}
+
+	return files
 }

@@ -185,7 +185,6 @@ func (w *Window) makeSearchInput() *widget.Entry {
 
 func makeList(ctx *Context) *widget.List {
 	data := []*Note{}
-	fmt.Println(len(data))
 	list := widget.NewList(
 		func() int {
 			return len(data)

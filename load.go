@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"reflect"
 	"time"
 )
@@ -14,7 +13,6 @@ func load(ctx *Context) {
 	}
 
 	for _, bookmarkFile := range getMozillaFiles() {
-		log.Println(bookmarkFile)
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
 		ctx.Notebooks = append(ctx.Notebooks,
 			NewNotebook("Bookmarks",
