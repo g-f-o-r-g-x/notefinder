@@ -60,7 +60,7 @@ func NewContext() *Context {
 		Requests:    make(chan Request, 8),
 	}
 
-	ctx.MainWindow = NewWindow(ctx, a)
+	ctx.MainWindow = NewWindow(ctx)
 	return ctx
 }
 

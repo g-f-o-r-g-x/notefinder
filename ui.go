@@ -26,9 +26,9 @@ type Window struct {
 	// TODO: add search input and status bar
 }
 
-func NewWindow(ctx *Context, app fyne.App) *Window {
-	mainWindow := app.NewWindow(appName)
-	w := &Window{window: mainWindow, app: app, context: ctx,
+func NewWindow(ctx *Context) *Window {
+	mainWindow := ctx.Application.NewWindow(appName)
+	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
 		ListItemIDToNote: make(map[widget.ListItemID]*Note)}
 
 	return w
