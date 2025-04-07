@@ -23,6 +23,10 @@ func NewMozillaImplementation(config map[string]string) *MozillaImplementation {
 	return &MozillaImplementation{path: config["path"]}
 }
 
+func (self *MozillaImplementation) CanWrite() (bool, error) {
+	return false, errors.New("Creating new bookmarks is not supported yet")
+}
+
 func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 	data := make(map[uint64]*Note, 0)
 
@@ -66,8 +70,8 @@ func (self *MozillaImplementation) DeleteData(note *Note) error {
 	return errors.New("Deleting bookmarks is not currently supported")
 }
 
-func getMozillaFiles() []string {
-	files := make([]string, 0)
+func getMozillaFiles() map[string]string {
+	files := make(map[string]string, 0)
 
 	user, _ := user.Current()
 	baseDir := filepath.Join(user.HomeDir, ".mozilla/firefox")
@@ -94,8 +98,7 @@ func getMozillaFiles() []string {
 			} else {
 				fmt.Println("No match found.")
 			}
-
-			files = append(files, placesFile)
+			files[matches[1]] = placesFile
 		}
 	} else {
 		log.Println(err)

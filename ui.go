@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -24,6 +25,7 @@ type Window struct {
 	app              fyne.App
 	context          *Context
 	query            string
+	notebook	*Notebook
 	ListItemIDToNote map[widget.ListItemID]*Note
 	// TODO: add search input and status bar
 }
@@ -43,44 +45,6 @@ func (w *Window) Query() string {
 func (w *Window) SetQuery(query string) {
 	w.query = query
 	w.searchInput.SetText(query)
-}
-
-func (w *Window) makeLayout() *fyne.Container {
-	w.searchInput = w.context.MainWindow.makeSearchInput()
-	tb := container.New(layout.NewFormLayout(), makeToolbar(w.context), w.searchInput)
-	selector := widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
-		log.Println("Select set to", value)
-	})
-	selector.PlaceHolder = "Current working notebook"
-	notebookSelector := container.New(layout.NewHBoxLayout(),
-		selector,
-		widget.NewCheck("Filter", func(value bool) {
-			log.Println("Check set to", value)
-		}),
-	)
-
-	top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
-
-	w.list = makeList(w.context)
-
-	w.statusBar = widget.NewLabel("")
-	w.statusBar.Hide()
-
-	return container.NewBorder(
-		top,
-		w.statusBar,
-		nil,
-		nil,
-		w.list)
-}
-
-func noteIcon(note *Note) fyne.Resource {
-	switch note.Type {
-	case NoteTypeBookmark:
-		return theme.HistoryIcon()
-	default:
-		return theme.DocumentIcon()
-	}
 }
 
 func (w *Window) Refresh() {
@@ -122,28 +86,46 @@ func (w *Window) Show() {
 	w.window.ShowAndRun()
 }
 
-func shortText(in string, limit int) string {
-	lines := strings.Split(in, "\n")
-	l := lines[0]
+func (w *Window) CurrentWorkingNotebook() *Notebook {
+	return w.notebook
+}
 
-	if len(l) > limit {
-		res := []string{}
-		words := strings.Split(l, " ")
-		for _, word := range words {
-			if len(strings.Join(res, " ")+word) <= limit*2 {
-				res = append(res, word)
-			}
-		}
+func (w *Window) makeLayout() *fyne.Container {
+	w.searchInput = w.context.MainWindow.makeSearchInput()
+	tb := container.New(layout.NewFormLayout(), makeToolbar(w.context), w.searchInput)
 
-		// Some jabberwocky so we could not even collect a word
-		if len(res) == 0 {
-			return l[:limit] + "..."
-		}
-		return strings.Join(res, " ") + "..."
+	names := make([]string, 0, len(w.context.Notebooks))
+	for name, _ := range w.context.Notebooks {
+		names = append(names, name)
 	}
 
-	return l
+	selector := widget.NewSelect(names, func(value string) {
+		log.Println("Select set to", value)
+		w.notebook = w.context.Notebooks[value]
+	})
+	selector.PlaceHolder = "Current working notebook"
+	notebookSelector := container.New(layout.NewHBoxLayout(),
+		selector,
+		widget.NewCheck("Filter", func(value bool) {
+			log.Println("Check set to", value)
+		}),
+	)
+
+	top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
+
+	w.list = makeList(w.context)
+
+	w.statusBar = widget.NewLabel("")
+	w.statusBar.Hide()
+
+	return container.NewBorder(
+		top,
+		w.statusBar,
+		nil,
+		nil,
+		w.list)
 }
+
 
 func makeToolbar(ctx *Context) *widget.Toolbar {
 	return widget.NewToolbar(
@@ -158,9 +140,24 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.MainWindow.ClipboardContent()
 			note := NewNote(0, shortText(content, 32), content+"\n")
-			if err := ctx.Notebooks[0].PutData(note); err != nil {
+			currentNotebook := ctx.MainWindow.CurrentWorkingNotebook()
+
+			if currentNotebook == nil {
+				dialog.ShowError(errors.New("Please select current working notebook"), ctx.MainWindow.window)
+				return
+			}
+
+			canWrite, reason := currentNotebook.CanWrite()
+			if !canWrite {
+				dialog.ShowError(reason, ctx.MainWindow.window)
+				return
+			}
+
+			if err := currentNotebook.PutData(note); err != nil {
 				log.Println(err)
 			}
+			ctx.Requests <- RequestLoadData
+			ctx.MainWindow.Refresh()
 			log.Println(content)
 		}),
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
@@ -291,4 +288,36 @@ func makeList(ctx *Context) *widget.List {
 	}
 
 	return list
+}
+
+func noteIcon(note *Note) fyne.Resource {
+	switch note.Type {
+	case NoteTypeBookmark:
+		return theme.HistoryIcon()
+	default:
+		return theme.DocumentIcon()
+	}
+}
+
+func shortText(in string, limit int) string {
+	lines := strings.Split(in, "\n")
+	l := lines[0]
+
+	if len(l) > limit {
+		res := []string{}
+		words := strings.Split(l, " ")
+		for _, word := range words {
+			if len(strings.Join(res, " ")+word) <= limit*2 {
+				res = append(res, word)
+			}
+		}
+
+		// Some jabberwocky so we could not even collect a word
+		if len(res) == 0 {
+			return l[:limit] + "..."
+		}
+		return strings.Join(res, " ") + "..."
+	}
+
+	return l
 }

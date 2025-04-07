@@ -12,6 +12,7 @@ type Implementation interface {
 	PutData(*Note) error
 	UpdateData(*Note, *Note) error
 	DeleteData(*Note) error
+	CanWrite() (bool, error)
 }
 
 type Store struct {
@@ -115,6 +116,10 @@ func NewNotebook(name string, impl Implementation, config map[string]string,
 func (self *Notebook) LoadData() (map[uint64]*Note, error) {
 	data, err := self.implementation.LoadData()
 	return data, err
+}
+
+func (self *Notebook) CanWrite() (bool, error) {
+	return self.implementation.CanWrite()
 }
 
 func (self *Notebook) PutData(note *Note) error {

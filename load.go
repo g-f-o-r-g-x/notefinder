@@ -7,17 +7,16 @@ import (
 
 func load(ctx *Context) {
 	config := ctx.Config
-	ctx.Notebooks = []*Notebook{
-		NewNotebook("default", NewFileImplementation(config), config,
+	ctx.Notebooks = map[string]*Notebook{
+		"default": NewNotebook("default", NewFileImplementation(config), config,
 			NotebookConfigured),
 	}
 
-	for _, bookmarkFile := range getMozillaFiles() {
+	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
-		ctx.Notebooks = append(ctx.Notebooks,
-			NewNotebook("Bookmarks",
-				NewMozillaImplementation(bookmarkConfig),
-				bookmarkConfig, NotebookAutoDiscovered))
+		ctx.Notebooks[name] = NewNotebook(name,
+			NewMozillaImplementation(bookmarkConfig),
+			bookmarkConfig, NotebookAutoDiscovered)
 	}
 
 	ticker := time.NewTicker(30 * time.Second)

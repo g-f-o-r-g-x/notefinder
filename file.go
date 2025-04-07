@@ -18,6 +18,19 @@ func NewFileImplementation(config map[string]string) *FileImplementation {
 	return &FileImplementation{path: config["path"]}
 }
 
+func (self *FileImplementation) CanWrite() (bool, error) {
+	tmpFile := "tmpfile"
+	file, err := os.CreateTemp(self.path, tmpFile)
+	if err != nil {
+		return false, err
+	}
+
+	defer os.Remove(file.Name())
+	defer file.Close()
+
+	return true, nil
+}
+
 func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 	data := make(map[uint64]*Note, 0)
 

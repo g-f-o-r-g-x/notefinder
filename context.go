@@ -24,7 +24,7 @@ const (
 type Context struct {
 	base
 	Config      map[string]string
-	Notebooks   []*Notebook
+	Notebooks   map[string]*Notebook
 	Data        *Store
 	Application fyne.App
 	MainWindow  *Window
