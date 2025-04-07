@@ -14,6 +14,6 @@ func main() {
 	log.Println(appName, appVersion)
 	ctx := NewContext()
 
-	go load(ctx)
+	go worker(ctx)
 	ctx.Run()
 }

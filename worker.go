@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
 	"reflect"
 	"time"
 )
 
-func load(ctx *Context) {
+func worker(ctx *Context) {
 	config := ctx.Config
 	ctx.Notebooks = map[string]*Notebook{
 		"default": NewNotebook("default", NewFileImplementation(config), config,
@@ -25,7 +26,8 @@ func load(ctx *Context) {
 		for _, notebook := range ctx.Notebooks {
 			data, err := notebook.LoadData()
 			if err != nil {
-				panic("Cannot load notebook data")
+				log.Println(err)
+				continue
 			}
 
 			for uuid, item := range data {
