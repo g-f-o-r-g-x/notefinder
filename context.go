@@ -32,22 +32,6 @@ type Context struct {
 	Requests chan Request
 }
 
-func getAbsolutePath() string {
-	user, _ := user.Current()
-
-	return filepath.Join(user.HomeDir, configPath)
-}
-
-func readConfig() map[string]string {
-	cfg, err := ini.Load(getAbsolutePath())
-
-	if err != nil {
-		panic(err)
-	}
-
-	return map[string]string{"path": cfg.Section("default").Key("path").String()}
-}
-
 func NewContext() *Context {
 	a := app.NewWithID("org.notefinder.app")
 	ctx := &Context{
@@ -66,4 +50,20 @@ func NewContext() *Context {
 
 func (ctx *Context) Run() {
 	ctx.MainWindow.Show()
+}
+
+func getAbsolutePath() string {
+	user, _ := user.Current()
+
+	return filepath.Join(user.HomeDir, configPath)
+}
+
+func readConfig() map[string]string {
+	cfg, err := ini.Load(getAbsolutePath())
+
+	if err != nil {
+		panic(err)
+	}
+
+	return map[string]string{"path": cfg.Section("default").Key("path").String()}
 }
