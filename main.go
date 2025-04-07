@@ -15,5 +15,7 @@ func main() {
 	ctx := NewContext()
 
 	go worker(ctx)
+	indexer := &Indexer{context: ctx}
+	go indexer.Run()
 	ctx.Run()
 }

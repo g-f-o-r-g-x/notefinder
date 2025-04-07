@@ -127,7 +127,7 @@ func (w *Window) makeLayout() *fyne.Container {
 		}),
 	)
 
-	top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
+	//top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
 
 	w.list = makeList(w.context)
 
@@ -135,8 +135,8 @@ func (w *Window) makeLayout() *fyne.Container {
 	w.statusBar.Hide()
 
 	return container.NewBorder(
-		top,
-		w.statusBar,
+		tb,
+		notebookSelector,
 		nil,
 		nil,
 		w.list)
