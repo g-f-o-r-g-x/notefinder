@@ -15,6 +15,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+/*
+Read this for details:
+https://www.codejam.info/2021/10/bypass-sqlite-exclusive-lock.html
+*/
+const (
+	bypassExclusiveLock = true
+)
+
 type MozillaImplementation struct {
 	path string
 }
@@ -30,15 +38,23 @@ func (self *MozillaImplementation) CanWrite() (bool, error) {
 func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 	data := make(map[uint64]*Note, 0)
 
-	file, err := ioutil.TempFile("/tmp/", "nf.*.sqlite")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer os.Remove(file.Name())
+	var fileName string
 
-	bytes, err := ioutil.ReadFile(self.path)
-	err = ioutil.WriteFile(file.Name(), bytes, 0644)
-	db, err := sql.Open("sqlite3", file.Name())
+	if !bypassExclusiveLock {
+		file, err := ioutil.TempFile("/tmp/", "nf.*.sqlite")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer os.Remove(file.Name())
+
+		bytes, err := ioutil.ReadFile(self.path)
+		err = ioutil.WriteFile(file.Name(), bytes, 0644)
+
+		fileName = file.Name()
+	} else {
+		fileName = "file:" + self.path + "?immutable=1"
+	}
+	db, err := sql.Open("sqlite3", fileName)
 
 	query := "select b.id, b.title, p.url from moz_bookmarks b, moz_places p where b.fk = p.id"
 	rows, _ := db.Query(query)

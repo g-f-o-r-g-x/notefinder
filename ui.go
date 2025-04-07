@@ -25,7 +25,7 @@ type Window struct {
 	app              fyne.App
 	context          *Context
 	query            string
-	notebook	*Notebook
+	notebook         *Notebook
 	ListItemIDToNote map[widget.ListItemID]*Note
 	// TODO: add search input and status bar
 }
@@ -125,7 +125,6 @@ func (w *Window) makeLayout() *fyne.Container {
 		nil,
 		w.list)
 }
-
 
 func makeToolbar(ctx *Context) *widget.Toolbar {
 	return widget.NewToolbar(
