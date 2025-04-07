@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -39,7 +38,6 @@ func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 	data := make(map[uint64]*Note, 0)
 
 	var fileName string
-
 	if !bypassExclusiveLock {
 		file, err := ioutil.TempFile("/tmp/", "nf.*.sqlite")
 		if err != nil {
@@ -56,18 +54,21 @@ func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 	}
 	db, err := sql.Open("sqlite3", fileName)
 
-	query := "select b.id, b.title, p.url from moz_bookmarks b, moz_places p where b.fk = p.id"
+	query := `select b.id, b.title, p.url, ifnull(p.description, "")
+		from moz_bookmarks b, moz_places p where b.fk = p.id`
 	rows, _ := db.Query(query)
 	for rows.Next() {
 		var id int
 		var title string
 		var url string
-		err = rows.Scan(&id, &title, &url)
+		var description string
+		err = rows.Scan(&id, &title, &url, &description)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		data[uint64(id)] = NewNote(uint64(id), title, url)
+		data[uint64(id)] = NewNote(uint64(id), title, description)
+		data[uint64(id)].URI = url
 		data[uint64(id)].Type = NoteTypeBookmark
 	}
 
@@ -110,11 +111,8 @@ func getMozillaFiles() map[string]string {
 			matches := re.FindStringSubmatch(placesFile)
 
 			if len(matches) > 1 {
-				fmt.Println("Profile ID:", matches[1])
-			} else {
-				fmt.Println("No match found.")
+				files[matches[1]] = placesFile
 			}
-			files[matches[1]] = placesFile
 		}
 	} else {
 		log.Println(err)

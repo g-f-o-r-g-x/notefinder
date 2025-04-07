@@ -96,6 +96,7 @@ type Note struct {
 	UUID       uint64
 	Title      string
 	Body       string
+	URI        string
 	CreatedAt  time.Time
 	ModifiedAt time.Time
 	flags      uint8

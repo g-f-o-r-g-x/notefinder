@@ -17,6 +17,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var uriError = errors.New("Unsupported URI")
+
 type Window struct {
 	window           fyne.Window
 	list             *widget.List
@@ -64,7 +66,7 @@ func (w *Window) Refresh() {
 
 		icon.SetResource(noteIcon(data[i]))
 		title.SetText(data[i].Title)
-		detail.Text = shortText(data[i].Body, 40)
+		detail.Text = shortText(data[i].Body, 64)
 		w.context.MainWindow.ListItemIDToNote[i] = data[i]
 		detail.Refresh()
 	}
@@ -240,12 +242,18 @@ func makeList(ctx *Context) *widget.List {
 		go func() {
 			time.Sleep(300 * time.Millisecond)
 			note, ok := ctx.MainWindow.ListItemIDToNote[id]
-			if strings.HasPrefix(note.Body, "https://") ||
-				strings.HasPrefix(note.Body, "http://") ||
-				strings.HasPrefix(note.Body, "file://") {
-				parsed, err := url.Parse(note.Body)
-				if err == nil {
-					fyne.CurrentApp().OpenURL(parsed)
+			if note.URI != "" {
+				if strings.HasPrefix(note.URI, "https://") ||
+					strings.HasPrefix(note.URI, "http://") ||
+					strings.HasPrefix(note.URI, "file://") {
+					parsed, err := url.Parse(note.URI)
+					if err == nil {
+						fyne.CurrentApp().OpenURL(parsed)
+						return
+					}
+					dialog.ShowError(uriError, ctx.MainWindow.window)
+				} else {
+					dialog.ShowError(uriError, ctx.MainWindow.window)
 					return
 				}
 			}
