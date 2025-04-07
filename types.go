@@ -32,12 +32,15 @@ func (self *Store) Put(key NoteKey, note *Note) {
 	self.data[key] = note
 }
 
-func (self *Store) Query(query string) []*Note {
+func (self *Store) Query(query *Query) []*Note {
 	res := make([]*Note, 0, len(self.data))
 	keys := make([]NoteKey, 0, len(self.data))
 
 	for key, note := range self.data {
-		if !strings.Contains(note.Title, query) {
+		if query.Haystack != nil && query.Haystack != key.Notebook {
+			continue
+		}
+		if !strings.Contains(note.Title, query.Needle) {
 			continue
 		}
 		keys = append(keys, key)
@@ -68,6 +71,11 @@ const (
 type NoteKey struct {
 	Notebook *Notebook
 	UUID     uint64
+}
+
+type Query struct {
+	Needle   string
+	Haystack *Notebook
 }
 
 type Notebook struct {

@@ -26,8 +26,9 @@ type Window struct {
 	statusBar        *widget.Label
 	app              fyne.App
 	context          *Context
-	query            string
+	query            *Query
 	notebook         *Notebook
+	filterByNotebook bool
 	ListItemIDToNote map[widget.ListItemID]*Note
 	// TODO: add search input and status bar
 }
@@ -35,24 +36,32 @@ type Window struct {
 func NewWindow(ctx *Context) *Window {
 	mainWindow := ctx.Application.NewWindow(appName)
 	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
-		ListItemIDToNote: make(map[widget.ListItemID]*Note)}
+		ListItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
 
 	return w
 }
 
-func (w *Window) Query() string {
+func (w *Window) Query() *Query {
 	return w.query
 }
 
-func (w *Window) SetQuery(query string) {
+func (w *Window) SetQuery(query *Query) {
 	w.query = query
-	w.searchInput.SetText(query)
+	w.searchInput.SetText(query.Needle)
 }
 
 func (w *Window) Refresh() {
 	w.statusBar.Show()
 	w.statusBar.SetText("Refreshing...")
+
+	currentNotebook := w.CurrentWorkingNotebook()
+	if currentNotebook != nil && w.filterByNotebook {
+		w.query.Haystack = w.CurrentWorkingNotebook()
+	} else {
+		w.query.Haystack = nil
+	}
 	data := w.context.Data.Query(w.query)
+
 	w.list.Length = func() int {
 		return len(data)
 	}
@@ -102,14 +111,19 @@ func (w *Window) makeLayout() *fyne.Container {
 	}
 
 	selector := widget.NewSelect(names, func(value string) {
-		log.Println("Select set to", value)
 		w.notebook = w.context.Notebooks[value]
+
+		if w.filterByNotebook {
+			w.query.Haystack = w.notebook
+			w.Refresh()
+		}
 	})
 	selector.PlaceHolder = "Current working notebook"
 	notebookSelector := container.New(layout.NewHBoxLayout(),
 		selector,
 		widget.NewCheck("Filter", func(value bool) {
-			log.Println("Check set to", value)
+			w.filterByNotebook = value
+			w.Refresh()
 		}),
 	)
 
@@ -131,7 +145,7 @@ func (w *Window) makeLayout() *fyne.Container {
 func makeToolbar(ctx *Context) *widget.Toolbar {
 	return widget.NewToolbar(
 		widget.NewToolbarAction(theme.HomeIcon(), func() {
-			ctx.MainWindow.SetQuery("")
+			ctx.MainWindow.SetQuery(&Query{Needle: ""})
 			ctx.MainWindow.Refresh()
 		}),
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
@@ -199,7 +213,7 @@ func (w *Window) makeSearchInput() *widget.Entry {
 	input.SetPlaceHolder("Enter search query...")
 	input.ActionItem = widget.NewIcon(theme.SearchIcon())
 	input.OnChanged = func(query string) {
-		w.query = query
+		w.query = &Query{Needle: query}
 		w.Refresh()
 	}
 
