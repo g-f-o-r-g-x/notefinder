@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -78,10 +80,19 @@ func getMozillaFiles() []string {
 			}
 
 			placesFile := filepath.Join(baseDir, f.Name(), "places.sqlite")
+
 			_, err := os.Stat(placesFile)
 			if err != nil {
 				log.Println(err)
 				continue
+			}
+			re := regexp.MustCompile(`/firefox/([^/]+)\.default(?:-release)?/`)
+			matches := re.FindStringSubmatch(placesFile)
+
+			if len(matches) > 1 {
+				fmt.Println("Profile ID:", matches[1])
+			} else {
+				fmt.Println("No match found.")
 			}
 
 			files = append(files, placesFile)

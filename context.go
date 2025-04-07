@@ -57,7 +57,7 @@ func NewContext() *Context {
 		Config:      readConfig(),
 		Data:        NewStore(),
 		Application: a,
-		Requests:    make(chan Request, 8),
+		Requests:    make(chan Request, 1),
 	}
 
 	ctx.MainWindow = NewWindow(ctx)

@@ -19,6 +19,8 @@ import (
 type Window struct {
 	window           fyne.Window
 	list             *widget.List
+	searchInput      *widget.Entry
+	statusBar        *widget.Label
 	app              fyne.App
 	context          *Context
 	query            string
@@ -40,14 +42,33 @@ func (w *Window) Query() string {
 
 func (w *Window) SetQuery(query string) {
 	w.query = query
+	w.searchInput.SetText(query)
 }
 
 func (w *Window) makeLayout() *fyne.Container {
+	w.searchInput = w.context.MainWindow.makeSearchInput()
+	tb := container.New(layout.NewFormLayout(), makeToolbar(w.context), w.searchInput)
+	selector := widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
+		log.Println("Select set to", value)
+	})
+	selector.PlaceHolder = "Current working notebook"
+	notebookSelector := container.New(layout.NewHBoxLayout(),
+		selector,
+		widget.NewCheck("Filter", func(value bool) {
+			log.Println("Check set to", value)
+		}),
+	)
+
+	top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
+
 	w.list = makeList(w.context)
+
+	w.statusBar = widget.NewLabel("")
+	w.statusBar.Hide()
+
 	return container.NewBorder(
-		container.New(layout.NewFormLayout(), makeToolbar(w.context),
-			w.context.MainWindow.makeSearchInput()),
-		widget.NewLabel(""),
+		top,
+		w.statusBar,
 		nil,
 		nil,
 		w.list)
@@ -63,6 +84,8 @@ func noteIcon(note *Note) fyne.Resource {
 }
 
 func (w *Window) Refresh() {
+	w.statusBar.Show()
+	w.statusBar.SetText("Refreshing...")
 	data := w.context.Data.Query(w.query)
 	w.list.Length = func() int {
 		return len(data)
@@ -82,6 +105,7 @@ func (w *Window) Refresh() {
 		detail.Refresh()
 	}
 	w.list.Refresh()
+	w.statusBar.Hide()
 }
 
 func (w *Window) ClipboardContent() string {
@@ -111,7 +135,7 @@ func shortText(in string, limit int) string {
 			}
 		}
 
-		// Some jabberwocky so we could not even collect one word for title
+		// Some jabberwocky so we could not even collect a word
 		if len(res) == 0 {
 			return l[:limit] + "..."
 		}
@@ -217,35 +241,48 @@ func makeList(ctx *Context) *widget.List {
 
 	list.OnSelected = func(id widget.ListItemID) {
 		go func() {
-			log.Println("entry to OnSelected")
 			time.Sleep(300 * time.Millisecond)
 			note, ok := ctx.MainWindow.ListItemIDToNote[id]
+			if strings.HasPrefix(note.Body, "https://") ||
+				strings.HasPrefix(note.Body, "http://") ||
+				strings.HasPrefix(note.Body, "file://") {
+				parsed, err := url.Parse(note.Body)
+				if err == nil {
+					fyne.CurrentApp().OpenURL(parsed)
+					return
+				}
+			}
 			if !ok {
-				log.Println("nothing :(")
 				return
 			}
-			e := widget.NewRichTextWithText(note.Body)
-			e.Wrapping = fyne.TextWrapWord
-			e2 := widget.NewEntry()
-			fmt.Println(ctx.MainWindow.ListItemIDToNote)
-			e2.SetText(note.Body)
-			e2.Hide()
+			textViewer := widget.NewRichTextWithText(note.Body)
+			textViewer.Wrapping = fyne.TextWrapWord
+			textEditor := widget.NewEntry()
+			textEditor.SetText(note.Body)
+			textEditor.Hide()
 
-			tb := widget.NewToolbar(widget.NewToolbarAction(
-				theme.DocumentCreateIcon(),
-				func() {
-					e.Hide()
-					e2.Show()
-					e2.Refresh()
-				}))
+			tb := widget.NewToolbar(
+				widget.NewToolbarAction(
+					theme.DocumentCreateIcon(),
+					func() {
+						textViewer.Hide()
+						textEditor.Show()
+					},
+				),
+				widget.NewToolbarAction(theme.DocumentSaveIcon(),
+					func() {
+						textEditor.Hide()
+						textViewer.Show()
+					},
+				),
+			)
 
-			v := container.New(layout.NewVBoxLayout(), e, e2)
+			v := container.New(layout.NewStackLayout(), textViewer, textEditor)
 			c := container.NewBorder(tb, nil, nil, nil, v)
 
 			w := ctx.Application.NewWindow(note.Title)
 			w.SetContent(c)
 			w.CenterOnScreen()
-			e.Resize(fyne.NewSize(540, 460))
 			w.Resize(fyne.NewSize(540, 460))
 			w.Show()
 

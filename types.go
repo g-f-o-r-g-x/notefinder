@@ -80,6 +80,7 @@ type Notebook struct {
 const (
 	FlagArchived = 1 << 0
 	FlagReadOnly = 1 << 1
+	FlagNotify   = 1 << 2
 )
 
 type NoteType int
@@ -101,7 +102,7 @@ type Note struct {
 	Type       NoteType
 }
 
-func NewNote(uuid uint64, title string, body string) *Note {
+func NewNote(uuid uint64, title, body string) *Note {
 	return &Note{UUID: uuid, Title: title, Body: body}
 }
 
