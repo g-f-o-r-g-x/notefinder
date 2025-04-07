@@ -7,12 +7,6 @@ import (
 )
 
 func worker(ctx *Context) {
-	config := ctx.Config
-	ctx.Notebooks = map[string]*Notebook{
-		"default": NewNotebook("default", NewFileImplementation(config), config,
-			NotebookConfigured),
-	}
-
 	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
 		ctx.Notebooks[name] = NewNotebook(name,

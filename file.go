@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 type FileImplementation struct {
@@ -32,6 +34,8 @@ func (self *FileImplementation) CanWrite() (bool, error) {
 }
 
 func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
+	mimetype.SetLimit(1024)
+
 	data := make(map[uint64]*Note, 0)
 
 	files, err := os.ReadDir(self.path)
@@ -52,10 +56,10 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			continue
 		}
 
-		if bytes.ContainsRune(content, 0) {
-			continue
+		var body string
+		if !bytes.ContainsRune(content, 0) {
+			body = string(content)
 		}
-		body := string(content)
 
 		var stat syscall.Stat_t
 		if err := syscall.Stat(filePath, &stat); err != nil {
@@ -63,7 +67,18 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			continue
 		}
 		data[stat.Ino] = NewNote(stat.Ino, f.Name(), body)
-		data[stat.Ino].Type = NoteTypeRegular
+
+		if body != "" {
+			data[stat.Ino].Type = NoteTypeRegular
+		} else {
+			data[stat.Ino].Type = NoteTypeFile
+			data[stat.Ino].URI = "file://" + filePath
+
+			mime, err := mimetype.DetectFile(filePath)
+			if err == nil {
+				data[stat.Ino].MimeType = mime.String()
+			}
+		}
 	}
 
 	return data, nil

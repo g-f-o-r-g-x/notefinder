@@ -38,6 +38,8 @@ func NewWindow(ctx *Context) *Window {
 	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
 		ListItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
 
+	//ctx.Application.Settings().SetTheme(theme.DarkTheme())
+
 	return w
 }
 
@@ -75,7 +77,15 @@ func (w *Window) Refresh() {
 
 		icon.SetResource(noteIcon(data[i]))
 		title.SetText(data[i].Title)
-		detail.Text = shortText(data[i].Body, 64)
+		if data[i].Body != "" {
+			detail.Text = shortText(data[i].Body, 64)
+		} else {
+			if data[i].Type == NoteTypeBookmark {
+				detail.Text = data[i].URI
+			} else if data[i].Type == NoteTypeFile {
+				detail.Text = data[i].MimeType
+			}
+		}
 		w.context.MainWindow.ListItemIDToNote[i] = data[i]
 		detail.Refresh()
 	}
@@ -315,6 +325,8 @@ func noteIcon(note *Note) fyne.Resource {
 	switch note.Type {
 	case NoteTypeBookmark:
 		return theme.HistoryIcon()
+	case NoteTypeFile:
+		return theme.FileIcon()
 	default:
 		return theme.DocumentIcon()
 	}
