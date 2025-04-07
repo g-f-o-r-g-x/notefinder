@@ -199,6 +199,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 func (w *Window) makeSearchInput() *widget.Entry {
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter search query...")
+	input.ActionItem = widget.NewIcon(theme.SearchIcon())
 	input.OnChanged = func(query string) {
 		w.query = query
 		w.Refresh()
