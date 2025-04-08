@@ -6,10 +6,16 @@ import (
 	_ "net/http/pprof"
 )
 
+const (
+	doProfiling = false
+)
+
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	if doProfiling {
+		go func() {
+			log.Println(http.ListenAndServe("localhost:6060", nil))
+		}()
+	}
 
 	log.Println(appName, appVersion)
 	ctx := NewContext()

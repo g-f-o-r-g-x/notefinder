@@ -28,13 +28,13 @@ type Window struct {
 	selectedNote     *Note
 	selectedListID   int
 	filterByNotebook bool
-	ListItemIDToNote map[widget.ListItemID]*Note
+	listItemIDToNote map[widget.ListItemID]*Note
 }
 
 func NewWindow(ctx *Context) *Window {
 	mainWindow := ctx.Application.NewWindow(appName)
 	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
-		ListItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
+		listItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
 
 	return w
 }
@@ -65,7 +65,7 @@ func (w *Window) Refresh() {
 		item := o.(*ClickableItem)
 		item.ID = i
 		item.OnTapped = func(id int) {
-			note, ok := w.ListItemIDToNote[id]
+			note, ok := w.listItemIDToNote[id]
 			if note.URI != "" {
 				if strings.HasPrefix(note.URI, "https://") ||
 					strings.HasPrefix(note.URI, "http://") ||
@@ -146,7 +146,7 @@ func (w *Window) Refresh() {
 		}
 
 		detail.Refresh()
-		w.ListItemIDToNote[i] = note
+		w.listItemIDToNote[i] = note
 	}
 	w.list.Refresh()
 }

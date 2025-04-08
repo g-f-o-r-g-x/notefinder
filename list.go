@@ -40,7 +40,7 @@ func (c *ClickableItem) CreateRenderer() fyne.WidgetRenderer {
 func (c *ClickableItem) Tapped(_ *fyne.PointEvent) {
 	log.Println("Click")
 	c.parent.selectedListID = c.ID
-	c.parent.selectedNote = c.parent.ListItemIDToNote[c.ID]
+	c.parent.selectedNote = c.parent.listItemIDToNote[c.ID]
 	now := time.Now()
 	if now.Sub(c.lastTap) < 300*time.Millisecond {
 		if c.OnTapped != nil {
