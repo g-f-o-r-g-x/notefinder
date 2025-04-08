@@ -32,6 +32,10 @@ func (self *Store) Put(key NoteKey, note *Note) {
 	self.data[key] = note
 }
 
+func (self *Store) Delete(key NoteKey) {
+	delete(self.data, key)
+}
+
 func (self *Store) Query(query *Query) []*Note {
 	res := make([]*Note, 0, len(self.data))
 	keys := make([]NoteKey, 0, len(self.data))
@@ -112,6 +116,7 @@ type Note struct {
 	flags      uint8
 	Properties map[string]string
 	Type       NoteType
+	Source     *Notebook
 }
 
 func NewNote(uuid uint64, title, body string) *Note {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/url"
 	"strings"
 
@@ -20,12 +21,12 @@ type Window struct {
 	window           fyne.Window
 	list             *widget.List
 	searchInput      *widget.Entry
-	statusBar        *widget.Label
 	app              fyne.App
 	context          *Context
 	query            *Query
 	notebook         *Notebook
-	selectedNote     map[*Note]int // n clicks
+	selectedNote     *Note
+	selectedListID   int
 	filterByNotebook bool
 	ListItemIDToNote map[widget.ListItemID]*Note
 }
@@ -48,9 +49,6 @@ func (w *Window) SetQuery(query *Query) {
 }
 
 func (w *Window) Refresh() {
-	w.statusBar.Show()
-	w.statusBar.SetText("Refreshing...")
-
 	currentNotebook := w.CurrentWorkingNotebook()
 	if currentNotebook != nil && w.filterByNotebook {
 		w.query.Haystack = w.CurrentWorkingNotebook()
@@ -63,6 +61,7 @@ func (w *Window) Refresh() {
 		return len(data)
 	}
 	w.list.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
+		log.Println("Entry to w.list.UpdateItem:", i)
 		item := o.(*ClickableItem)
 		item.ID = i
 		item.OnTapped = func(id int) {
@@ -85,9 +84,11 @@ func (w *Window) Refresh() {
 			if !ok {
 				return
 			}
-			textViewer := widget.NewRichTextWithText(note.Body)
+			textViewer := widget.NewRichTextFromMarkdown(note.Body)
 			textViewer.Wrapping = fyne.TextWrapWord
 			textEditor := widget.NewEntry()
+			textEditor.MultiLine = true
+			textEditor.Wrapping = fyne.TextWrapWord
 			textEditor.SetText(note.Body)
 			textEditor.Hide()
 
@@ -145,10 +146,9 @@ func (w *Window) Refresh() {
 		}
 
 		detail.Refresh()
-		w.context.MainWindow.ListItemIDToNote[i] = note
+		w.ListItemIDToNote[i] = note
 	}
 	w.list.Refresh()
-	w.statusBar.Hide()
 }
 
 func (w *Window) ClipboardContent() string {
@@ -196,9 +196,6 @@ func (w *Window) makeLayout() *fyne.Container {
 	)
 
 	w.list = makeList(w.context)
-
-	w.statusBar = widget.NewLabel("")
-	w.statusBar.Hide()
 
 	return container.NewBorder(
 		tb,

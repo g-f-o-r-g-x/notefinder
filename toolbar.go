@@ -24,7 +24,26 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
 		widget.NewToolbarAction(theme.MediaRecordIcon(), func() {}),
 		widget.NewToolbarAction(theme.VisibilityOffIcon(), func() {}),
-		widget.NewToolbarAction(theme.DeleteIcon(), func() {}),
+		widget.NewToolbarAction(theme.DeleteIcon(), func() {
+			if ctx.MainWindow.selectedNote == nil {
+				return
+			}
+			warning := fmt.Sprintf("Are you sure you want to delete \"%s\"?",
+				ctx.MainWindow.selectedNote.Title)
+			dialog.ShowConfirm("", warning, func(yes bool) {
+				if yes {
+					err := ctx.MainWindow.selectedNote.Source.DeleteData(
+						ctx.MainWindow.selectedNote,
+					)
+					if err != nil {
+						dialog.ShowError(err, ctx.MainWindow.window)
+					}
+					ctx.MainWindow.selectedNote = nil
+					ctx.MainWindow.selectedListID = -1
+					ctx.Requests <- RequestLoadData
+				}
+			}, ctx.MainWindow.window)
+		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.MainWindow.ClipboardContent()
 			note := NewNote(0, shortText(content, 32), content+"\n")

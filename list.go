@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	fyne "fyne.io/fyne/v2"
@@ -14,14 +15,17 @@ import (
 type ClickableItem struct {
 	widget.BaseWidget
 	content  fyne.CanvasObject
+	parent   *Window
 	ID       int
 	OnTapped func(id int)
 	lastTap  time.Time
 }
 
-func NewClickableItem(id int, content fyne.CanvasObject, onTapped func(id int)) *ClickableItem {
+func NewClickableItem(id int, content fyne.CanvasObject, parent *Window,
+	onTapped func(id int)) *ClickableItem {
 	ci := &ClickableItem{
 		content:  content,
+		parent:   parent,
 		ID:       id,
 		OnTapped: onTapped,
 	}
@@ -34,6 +38,9 @@ func (c *ClickableItem) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (c *ClickableItem) Tapped(_ *fyne.PointEvent) {
+	log.Println("Click")
+	c.parent.selectedListID = c.ID
+	c.parent.selectedNote = c.parent.ListItemIDToNote[c.ID]
 	now := time.Now()
 	if now.Sub(c.lastTap) < 300*time.Millisecond {
 		if c.OnTapped != nil {
@@ -41,6 +48,8 @@ func (c *ClickableItem) Tapped(_ *fyne.PointEvent) {
 		}
 	}
 	c.lastTap = now
+
+	c.parent.list.Refresh()
 }
 
 func makeList(ctx *Context) *widget.List {
@@ -58,7 +67,7 @@ func makeList(ctx *Context) *widget.List {
 			detail.TextStyle.Italic = true
 
 			vbox := container.New(layout.NewVBoxLayout(), topRow, detail)
-			return NewClickableItem(0, vbox, nil)
+			return NewClickableItem(0, vbox, ctx.MainWindow, nil)
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 		})

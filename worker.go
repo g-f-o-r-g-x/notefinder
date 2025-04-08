@@ -24,12 +24,22 @@ func worker(ctx *Context) {
 				continue
 			}
 
+			for _, oldItem := range ctx.Data.Query(&Query{Haystack: notebook}) {
+				log.Println(oldItem.UUID, oldItem.Title)
+
+				_, stillHave := data[oldItem.UUID]
+				if !stillHave {
+					ctx.Data.Delete(NoteKey{Notebook: notebook, UUID: oldItem.UUID})
+				}
+			}
+
 			for uuid, item := range data {
 				key := NoteKey{Notebook: notebook, UUID: uuid}
 				existingItem, ok := ctx.Data.Get(key)
 				if ok && reflect.DeepEqual(item, existingItem) {
 					continue
 				}
+				item.Source = notebook
 
 				ctx.Data.Put(key, item)
 				haveUpdates = true
