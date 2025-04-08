@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -65,26 +64,89 @@ func (w *Window) Refresh() {
 		return len(data)
 	}
 	w.list.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
-		rows := o.(*fyne.Container).Objects
+		item := o.(*ClickableItem)
+		item.ID = i
+		item.OnTapped = func(id int) {
+			note, ok := w.ListItemIDToNote[id]
+			if note.URI != "" {
+				if strings.HasPrefix(note.URI, "https://") ||
+					strings.HasPrefix(note.URI, "http://") ||
+					strings.HasPrefix(note.URI, "file://") {
+					parsed, err := url.Parse(note.URI)
+					if err == nil {
+						fyne.CurrentApp().OpenURL(parsed)
+						return
+					}
+					dialog.ShowError(uriError, w.window)
+				} else {
+					dialog.ShowError(uriError, w.window)
+					return
+				}
+			}
+			if !ok {
+				return
+			}
+			textViewer := widget.NewRichTextWithText(note.Body)
+			textViewer.Wrapping = fyne.TextWrapWord
+			textEditor := widget.NewEntry()
+			textEditor.SetText(note.Body)
+			textEditor.Hide()
+
+			tb := widget.NewToolbar(
+				widget.NewToolbarAction(
+					theme.DocumentCreateIcon(),
+					func() {
+						textViewer.Hide()
+						textEditor.Show()
+					},
+				),
+				widget.NewToolbarAction(theme.DocumentSaveIcon(),
+					func() {
+						textEditor.Hide()
+						textViewer.Show()
+					},
+				),
+			)
+
+			v := container.New(layout.NewStackLayout(), textViewer, textEditor)
+			c := container.NewBorder(tb, nil, nil, nil, v)
+
+			editorWindow := w.app.NewWindow(note.Title)
+			editorWindow.SetContent(c)
+			editorWindow.CenterOnScreen()
+			editorWindow.Resize(fyne.NewSize(540, 460))
+			editorWindow.Show()
+		}
+
+		vbox := item.content.(*fyne.Container)
+		rows := vbox.Objects
+
 		topRow := rows[0].(*fyne.Container)
 		detail := rows[1].(*canvas.Text)
 
 		icon := topRow.Objects[0].(*widget.Icon)
 		title := topRow.Objects[1].(*widget.Label)
 
-		icon.SetResource(noteIcon(data[i]))
-		title.SetText(data[i].Title)
-		if data[i].Body != "" {
-			detail.Text = shortText(data[i].Body, 64)
+		note := data[i]
+
+		icon.SetResource(noteIcon(note))
+		title.SetText(note.Title)
+
+		if note.Body != "" {
+			detail.Text = shortText(note.Body, 64)
 		} else {
-			if data[i].Type == NoteTypeBookmark {
-				detail.Text = data[i].URI
-			} else if data[i].Type == NoteTypeFile {
-				detail.Text = data[i].MimeType
+			switch note.Type {
+			case NoteTypeBookmark:
+				detail.Text = note.URI
+			case NoteTypeFile:
+				detail.Text = note.MimeType
+			default:
+				detail.Text = ""
 			}
 		}
-		w.context.MainWindow.ListItemIDToNote[i] = data[i]
+
 		detail.Refresh()
+		w.context.MainWindow.ListItemIDToNote[i] = note
 	}
 	w.list.Refresh()
 	w.statusBar.Hide()
@@ -160,11 +222,35 @@ func (w *Window) makeSearchInput() *widget.Entry {
 }
 
 type ClickableItem struct {
-    fyne.Container
-    widget.BaseWidget
-    ID        int
-    OnTapped  func(id int)
-    lastTap   time.Time
+	widget.BaseWidget
+	content  fyne.CanvasObject
+	ID       int
+	OnTapped func(id int)
+	lastTap  time.Time
+}
+
+func NewClickableItem(id int, content fyne.CanvasObject, onTapped func(id int)) *ClickableItem {
+	ci := &ClickableItem{
+		content:  content,
+		ID:       id,
+		OnTapped: onTapped,
+	}
+	ci.ExtendBaseWidget(ci)
+	return ci
+}
+
+func (c *ClickableItem) CreateRenderer() fyne.WidgetRenderer {
+	return widget.NewSimpleRenderer(c.content)
+}
+
+func (c *ClickableItem) Tapped(_ *fyne.PointEvent) {
+	now := time.Now()
+	if now.Sub(c.lastTap) < 300*time.Millisecond {
+		if c.OnTapped != nil {
+			c.OnTapped(c.ID)
+		}
+	}
+	c.lastTap = now
 }
 
 func makeList(ctx *Context) *widget.List {
@@ -181,81 +267,11 @@ func makeList(ctx *Context) *widget.List {
 			detail := canvas.NewText("Brief content", theme.ForegroundColor())
 			detail.TextStyle.Italic = true
 
-			return container.New(layout.NewVBoxLayout(), topRow, detail)
+			vbox := container.New(layout.NewVBoxLayout(), topRow, detail)
+			return NewClickableItem(0, vbox, nil)
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
-			rows := o.(*fyne.Container).Objects
-			topRow := rows[0].(*fyne.Container)
-			detail := rows[1].(*canvas.Text)
-
-			icon := topRow.Objects[0].(*widget.Icon)
-			title := topRow.Objects[1].(*widget.Label)
-
-			icon.SetResource(theme.ConfirmIcon())
-			title.SetText(data[i].Title)
-			detail.Text = shortText(data[i].Body, 64)
-			detail.Refresh()
-
-			ctx.MainWindow.ListItemIDToNote[i] = data[i]
 		})
-
-	list.OnSelected = func(id widget.ListItemID) {
-		go func() {
-			fmt.Println("click on", id)
-			return
-			time.Sleep(300 * time.Millisecond)
-			note, ok := ctx.MainWindow.ListItemIDToNote[id]
-			if note.URI != "" {
-				if strings.HasPrefix(note.URI, "https://") ||
-					strings.HasPrefix(note.URI, "http://") ||
-					strings.HasPrefix(note.URI, "file://") {
-					parsed, err := url.Parse(note.URI)
-					if err == nil {
-						fyne.CurrentApp().OpenURL(parsed)
-						return
-					}
-					dialog.ShowError(uriError, ctx.MainWindow.window)
-				} else {
-					dialog.ShowError(uriError, ctx.MainWindow.window)
-					return
-				}
-			}
-			if !ok {
-				return
-			}
-			textViewer := widget.NewRichTextWithText(note.Body)
-			textViewer.Wrapping = fyne.TextWrapWord
-			textEditor := widget.NewEntry()
-			textEditor.SetText(note.Body)
-			textEditor.Hide()
-
-			tb := widget.NewToolbar(
-				widget.NewToolbarAction(
-					theme.DocumentCreateIcon(),
-					func() {
-						textViewer.Hide()
-						textEditor.Show()
-					},
-				),
-				widget.NewToolbarAction(theme.DocumentSaveIcon(),
-					func() {
-						textEditor.Hide()
-						textViewer.Show()
-					},
-				),
-			)
-
-			v := container.New(layout.NewStackLayout(), textViewer, textEditor)
-			c := container.NewBorder(tb, nil, nil, nil, v)
-
-			w := ctx.Application.NewWindow(note.Title)
-			w.SetContent(c)
-			w.CenterOnScreen()
-			w.Resize(fyne.NewSize(540, 460))
-			w.Show()
-
-		}()
-	}
 
 	return list
 }
