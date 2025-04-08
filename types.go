@@ -106,7 +106,7 @@ type Note struct {
 	Title      string
 	Body       string
 	URI        string
-	MimeType string
+	MimeType   string
 	CreatedAt  time.Time
 	ModifiedAt time.Time
 	flags      uint8

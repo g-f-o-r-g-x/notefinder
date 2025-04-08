@@ -106,5 +106,5 @@ func (self *FileImplementation) UpdateData(oldNote *Note, newNote *Note) error {
 }
 
 func (self *FileImplementation) DeleteData(note *Note) error {
-	return nil
+	return os.Remove(filepath.Join(self.path, note.Title))
 }

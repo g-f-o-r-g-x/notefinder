@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -28,17 +27,15 @@ type Window struct {
 	context          *Context
 	query            *Query
 	notebook         *Notebook
+	selectedNote     map[*Note]int // n clicks
 	filterByNotebook bool
 	ListItemIDToNote map[widget.ListItemID]*Note
-	// TODO: add search input and status bar
 }
 
 func NewWindow(ctx *Context) *Window {
 	mainWindow := ctx.Application.NewWindow(appName)
 	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
 		ListItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
-
-	//ctx.Application.Settings().SetTheme(theme.DarkTheme())
 
 	return w
 }
@@ -137,8 +134,6 @@ func (w *Window) makeLayout() *fyne.Container {
 		}),
 	)
 
-	//top := container.New(layout.NewVBoxLayout(), tb, notebookSelector)
-
 	w.list = makeList(w.context)
 
 	w.statusBar = widget.NewLabel("")
@@ -152,72 +147,6 @@ func (w *Window) makeLayout() *fyne.Container {
 		w.list)
 }
 
-func makeToolbar(ctx *Context) *widget.Toolbar {
-	return widget.NewToolbar(
-		widget.NewToolbarAction(theme.HomeIcon(), func() {
-			ctx.MainWindow.SetQuery(&Query{Needle: ""})
-			ctx.MainWindow.Refresh()
-		}),
-		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
-		widget.NewToolbarAction(theme.MediaRecordIcon(), func() {}),
-		widget.NewToolbarAction(theme.VisibilityOffIcon(), func() {}),
-		widget.NewToolbarAction(theme.DeleteIcon(), func() {}),
-		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
-			content := ctx.MainWindow.ClipboardContent()
-			note := NewNote(0, shortText(content, 32), content+"\n")
-			currentNotebook := ctx.MainWindow.CurrentWorkingNotebook()
-
-			if currentNotebook == nil {
-				dialog.ShowError(errors.New("Please select current working notebook"), ctx.MainWindow.window)
-				return
-			}
-
-			canWrite, reason := currentNotebook.CanWrite()
-			if !canWrite {
-				dialog.ShowError(reason, ctx.MainWindow.window)
-				return
-			}
-
-			if err := currentNotebook.PutData(note); err != nil {
-				log.Println(err)
-			}
-			ctx.Requests <- RequestLoadData
-			ctx.MainWindow.Refresh()
-			log.Println(content)
-		}),
-		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
-			ctx.Requests <- RequestLoadData
-		}),
-		widget.NewToolbarAction(theme.InfoIcon(), func() {
-			img := canvas.NewImageFromResource(appLogo)
-			img.FillMode = canvas.ImageFillContain
-			img.SetMinSize(fyne.NewSize(128, 128))
-
-			headerText := fmt.Sprintf("%s %.1f", appName, appVersion)
-			header := container.New(layout.NewCenterLayout(),
-				widget.NewLabelWithStyle(headerText, fyne.TextAlignCenter,
-					fyne.TextStyle{Bold: true}))
-
-			authorLabel := widget.NewLabel("Author: Sergey S.")
-			licenseLink := widget.NewHyperlink("License", &url.URL{
-				Scheme: "https",
-				Host:   "opensource.org",
-				Path:   "/license/bsd-3-clause",
-			})
-
-			footer := container.NewVBox(
-				container.New(layout.NewCenterLayout(), authorLabel),
-				container.New(layout.NewCenterLayout(), licenseLink),
-			)
-
-			content := container.NewBorder(header, footer, nil, nil, img)
-
-			dialog.ShowCustom("About", "Close", content, ctx.MainWindow.window)
-
-		}),
-	)
-}
-
 func (w *Window) makeSearchInput() *widget.Entry {
 	input := widget.NewEntry()
 	input.SetPlaceHolder("Enter search query...")
@@ -228,6 +157,14 @@ func (w *Window) makeSearchInput() *widget.Entry {
 	}
 
 	return input
+}
+
+type ClickableItem struct {
+    fyne.Container
+    widget.BaseWidget
+    ID        int
+    OnTapped  func(id int)
+    lastTap   time.Time
 }
 
 func makeList(ctx *Context) *widget.List {
@@ -264,6 +201,8 @@ func makeList(ctx *Context) *widget.List {
 
 	list.OnSelected = func(id widget.ListItemID) {
 		go func() {
+			fmt.Println("click on", id)
+			return
 			time.Sleep(300 * time.Millisecond)
 			note, ok := ctx.MainWindow.ListItemIDToNote[id]
 			if note.URI != "" {

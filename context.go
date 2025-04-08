@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os/user"
 	"path/filepath"
 
@@ -24,7 +23,6 @@ const (
 
 type Context struct {
 	base
-	//	Config      map[string]string
 	Notebooks   map[string]*Notebook
 	Data        *Store
 	Application fyne.App
@@ -39,7 +37,6 @@ func NewContext() *Context {
 		base: base{
 			context: context.Background(),
 		},
-		//		Config:      readConfig(),
 		Data:        NewStore(),
 		Application: a,
 		Requests:    make(chan Request, 1),
@@ -91,8 +88,6 @@ func readConfig(ctx *Context) map[string]*Notebook {
 			config[key] = section.Key(key).String()
 		}
 
-		log.Println(config)
-
 		implName, haveImplName := config["impl"]
 		_, havePath := config["path"]
 
@@ -107,5 +102,4 @@ func readConfig(ctx *Context) map[string]*Notebook {
 	}
 
 	return ret
-	// return map[string]string{"path": cfg.Section("default").Key("path").String()}
 }
