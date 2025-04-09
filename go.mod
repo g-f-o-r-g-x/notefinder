@@ -4,7 +4,6 @@ go 1.24.1
 
 require (
 	fyne.io/fyne/v2 v2.5.5
-	github.com/g-f-o-r-g-x/campher v0.0.0-20250408110229-7c32f4bcd150
 	github.com/gabriel-vasile/mimetype v1.4.8
 	github.com/mattn/go-sqlite3 v1.14.27
 	gopkg.in/ini.v1 v1.67.0

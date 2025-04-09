@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"net/url"
 	"strings"
 
@@ -36,6 +35,7 @@ func NewWindow(ctx *Context) *Window {
 	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
 		listItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
 
+	w.selectedListID = -1
 	return w
 }
 
@@ -61,7 +61,6 @@ func (w *Window) Refresh() {
 		return len(data)
 	}
 	w.list.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
-		log.Println("Entry to w.list.UpdateItem:", i)
 		item := o.(*ClickableItem)
 		item.ID = i
 		item.OnTapped = func(id int) {
@@ -129,6 +128,14 @@ func (w *Window) Refresh() {
 
 		note := data[i]
 
+		// Set title to bold if item is selected
+		if i == w.selectedListID {
+			title.TextStyle.Bold = true
+		} else {
+			title.TextStyle.Bold = false
+		}
+
+		// Update the rest of the details and text
 		icon.SetResource(noteIcon(note))
 		title.SetText(note.Title)
 
@@ -145,9 +152,13 @@ func (w *Window) Refresh() {
 			}
 		}
 
+		// Refresh the detail text after the update
 		detail.Refresh()
+
+		// Store the note in the mapping
 		w.listItemIDToNote[i] = note
 	}
+
 	w.list.Refresh()
 }
 
@@ -183,6 +194,8 @@ func (w *Window) makeLayout() *fyne.Container {
 
 		if w.filterByNotebook {
 			w.query.Haystack = w.notebook
+			w.selectedListID = -1
+			w.selectedNote = nil
 			w.Refresh()
 		}
 	})
@@ -191,6 +204,8 @@ func (w *Window) makeLayout() *fyne.Container {
 		selector,
 		widget.NewCheck("Filter", func(value bool) {
 			w.filterByNotebook = value
+			w.selectedListID = -1
+			w.selectedNote = nil
 			w.Refresh()
 		}),
 	)
@@ -211,6 +226,7 @@ func (w *Window) makeSearchInput() *widget.Entry {
 	input.ActionItem = widget.NewIcon(theme.SearchIcon())
 	input.OnChanged = func(query string) {
 		w.query = &Query{Needle: query}
+		w.selectedListID = -1
 		w.Refresh()
 	}
 

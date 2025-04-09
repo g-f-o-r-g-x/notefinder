@@ -44,12 +44,10 @@ func worker(ctx *Context) {
 				ctx.Data.Put(key, item)
 				haveUpdates = true
 			}
-
 		}
 		if haveUpdates {
 			ctx.MainWindow.Refresh()
 		}
-
 	}
 
 	for {
