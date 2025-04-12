@@ -7,6 +7,7 @@ import (
 )
 
 func worker(ctx *Context, toInterp chan<- *Note) {
+	defer close(toInterp)
 	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
 		ctx.Notebooks[name] = NewNotebook(name,
