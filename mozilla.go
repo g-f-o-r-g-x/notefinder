@@ -24,7 +24,7 @@ const (
 
 type MozillaImplementation struct {
 	context *Context
-	path string
+	path    string
 }
 
 func NewMozillaImplementation(ctx *Context, config map[string]string) *MozillaImplementation {

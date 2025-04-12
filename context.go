@@ -28,7 +28,7 @@ type Context struct {
 	Application fyne.App
 	MainWindow  *Window
 	interpreter *Interpreter
-	Requests chan Request
+	Requests    chan Request
 }
 
 func NewContext() *Context {

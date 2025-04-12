@@ -60,7 +60,7 @@ const (
 )
 
 type Note struct {
-	context	   *Context
+	context    *Context
 	UUID       uint64
 	Title      string
 	Body       string
@@ -94,9 +94,9 @@ func (self *Note) ToHV() *C.SV {
 
 	title_sv := C.Perl_newSVpvn(perl, title_value, C.strlen(title_value))
 	body_sv := C.Perl_newSVpvn(perl, body_value, C.strlen(body_value))
-	
+
 	C.Perl_hv_store(perl, hv, title_key, C.I32(C.strlen(title_key)), title_sv, 0)
-	C.Perl_hv_store(perl, hv, body_key, C.I32(C.strlen(body_key)), body_sv, 0) 
+	C.Perl_hv_store(perl, hv, body_key, C.I32(C.strlen(body_key)), body_sv, 0)
 
 	sv := C.Perl_newRV_noinc(perl, (*C.SV)(unsafe.Pointer(hv)))
 	return sv

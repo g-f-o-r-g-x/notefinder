@@ -14,7 +14,7 @@ import (
 
 type FileImplementation struct {
 	context *Context
-	path string
+	path    string
 }
 
 func NewFileImplementation(ctx *Context, config map[string]string) *FileImplementation {
