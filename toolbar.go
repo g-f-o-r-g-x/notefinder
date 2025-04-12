@@ -46,7 +46,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.MainWindow.ClipboardContent()
-			note := NewNote(0, shortText(content, 32), content+"\n")
+			note := NewNote(ctx, 0, shortText(content, 32), content+"\n")
 			currentNotebook := ctx.MainWindow.CurrentWorkingNotebook()
 
 			if currentNotebook == nil {

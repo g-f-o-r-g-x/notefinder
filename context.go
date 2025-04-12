@@ -27,7 +27,7 @@ type Context struct {
 	Data        *Store
 	Application fyne.App
 	MainWindow  *Window
-
+	interpreter *Interpreter
 	Requests chan Request
 }
 
@@ -58,12 +58,12 @@ func getAbsolutePath() string {
 	return filepath.Join(user.HomeDir, configPath)
 }
 
-func implByName(name string, config map[string]string) Implementation {
+func implByName(ctx *Context, name string, config map[string]string) Implementation {
 	switch name {
 	case "file":
-		return NewFileImplementation(config)
+		return NewFileImplementation(ctx, config)
 	case "mozilla":
-		return NewMozillaImplementation(config)
+		return NewMozillaImplementation(ctx, config)
 	default:
 		return nil
 	}
@@ -95,7 +95,7 @@ func readConfig(ctx *Context) map[string]*Notebook {
 		if !haveImplName && havePath {
 			implName = "file"
 		}
-		impl := implByName(implName, config)
+		impl := implByName(ctx, implName, config)
 		_ = impl
 
 		ret[name] = NewNotebook(name, impl, config, NotebookConfigured)

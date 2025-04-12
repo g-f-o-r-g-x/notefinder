@@ -3,6 +3,23 @@ package main
 /*
 #include <EXTERN.h>
 #include "perl.h"
+
+void
+call_print_note(pTHX_ SV* note_ref)
+{
+    dSP;                      // initialize stack pointer
+    ENTER;
+    SAVETMPS;
+
+    PUSHMARK(SP);
+    XPUSHs(note_ref);         // push argument
+    PUTBACK;
+
+    call_pv("print_note", G_VOID); // call Perl function
+
+    FREETMPS;
+    LEAVE;
+}
 */
 import "C"
 
@@ -21,7 +38,15 @@ func NewInterpreter() *Interpreter {
 	runtime.LockOSThread()
 
 	args := []*C.char{
-		C.CString(""), C.CString("-e"), C.CString("0"), nil,
+		C.CString(""),
+		C.CString("-e"),
+		C.CString(`sub print_note {
+			my $note = shift;
+			for my $k (sort keys %$note) {
+				print "$k => $note->{$k}\n";
+			}
+		}`),
+		nil,
 	}
 	defer func() {
 		for _, arg := range args {
@@ -52,10 +77,11 @@ func (i *Interpreter) Destroy() {
 	runtime.UnlockOSThread()
 }
 
-func (i *Interpreter) Run(input <-chan int) {
-	for num := range input {
-		code := fmt.Sprintf("print(\"Go sent: %d\n\");", num)
-		i.Eval(code)
+func (i *Interpreter) Run(input <-chan *Note) {
+	for data := range input {
+		fmt.Println(data)
+		fmt.Println(data.ToHV())
+		C.call_print_note(i.perl, data.ToHV())
 		time.Sleep(1)
 	}
 }

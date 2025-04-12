@@ -23,11 +23,12 @@ const (
 )
 
 type MozillaImplementation struct {
+	context *Context
 	path string
 }
 
-func NewMozillaImplementation(config map[string]string) *MozillaImplementation {
-	return &MozillaImplementation{path: config["path"]}
+func NewMozillaImplementation(ctx *Context, config map[string]string) *MozillaImplementation {
+	return &MozillaImplementation{context: ctx, path: config["path"]}
 }
 
 func (self *MozillaImplementation) CanWrite() (bool, error) {
@@ -67,7 +68,7 @@ func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 			log.Fatal(err)
 		}
 
-		data[uint64(id)] = NewNote(uint64(id), title, description)
+		data[uint64(id)] = NewNote(self.context, uint64(id), title, description)
 		data[uint64(id)].URI = url
 		data[uint64(id)].Type = NoteTypeBookmark
 	}

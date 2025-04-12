@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-func worker(ctx *Context) {
+func worker(ctx *Context, toInterp chan<- *Note) {
 	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
 		ctx.Notebooks[name] = NewNotebook(name,
-			NewMozillaImplementation(bookmarkConfig),
+			NewMozillaImplementation(ctx, bookmarkConfig),
 			bookmarkConfig, NotebookAutoDiscovered)
 	}
 
@@ -40,6 +40,7 @@ func worker(ctx *Context) {
 				item.Source = notebook
 
 				ctx.Data.Put(key, item)
+				toInterp <- item
 				haveUpdates = true
 			}
 		}

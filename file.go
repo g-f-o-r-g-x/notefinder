@@ -13,11 +13,12 @@ import (
 )
 
 type FileImplementation struct {
+	context *Context
 	path string
 }
 
-func NewFileImplementation(config map[string]string) *FileImplementation {
-	return &FileImplementation{path: config["path"]}
+func NewFileImplementation(ctx *Context, config map[string]string) *FileImplementation {
+	return &FileImplementation{context: ctx, path: config["path"]}
 }
 
 func (self *FileImplementation) CanWrite() (bool, error) {
@@ -66,7 +67,7 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			log.Println(err)
 			continue
 		}
-		data[stat.Ino] = NewNote(stat.Ino, f.Name(), body)
+		data[stat.Ino] = NewNote(self.context, stat.Ino, f.Name(), body)
 
 		if body != "" {
 			data[stat.Ino].Type = NoteTypeRegular

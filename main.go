@@ -21,23 +21,22 @@ func main() {
 	log.Println(appName, appVersion)
 	ctx := NewContext()
 
-	go worker(ctx)
+	ch := make(chan *Note, 1)
+	go worker(ctx, ch)
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
 
-	ch := make(chan int, 1)
-
 	go func() {
 		for i := range 1000 {
-			ch <- i
+			_ = i
 			time.Sleep(1 * time.Second)
 		}
 		close(ch)
 	}()
 	go func() {
-		interpreter := NewInterpreter()
-		defer interpreter.Destroy()
-		interpreter.Run(ch)
+		ctx.interpreter = NewInterpreter()
+		defer ctx.interpreter.Destroy()
+		ctx.interpreter.Run(ch)
 	}()
 	ctx.Run()
 }
