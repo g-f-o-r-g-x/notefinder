@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 )
 
@@ -54,7 +55,10 @@ func (i *Interpreter) Destroy() {
 	runtime.UnlockOSThread()
 }
 
-func (i *Interpreter) Run() {
-	i.Eval(`print("Hello from Perl!\n")`)
-	time.Sleep(30)
+func (i *Interpreter) Run(input <-chan int) {
+	for num := range input {
+		code := fmt.Sprintf("print(\"Go sent: %d\n\");", num)
+		i.Eval(code)
+		time.Sleep(1)
+	}
 }

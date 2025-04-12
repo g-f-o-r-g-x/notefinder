@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"time"
 )
 
 const (
@@ -24,10 +25,17 @@ func main() {
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
 
+	ch := make(chan int, 1)
+
+	interpreter := NewInterpreter()
+	defer interpreter.Destroy()
 	go func() {
-		interpreter := NewInterpreter()
-		interpreter.Run()
-		defer interpreter.Destroy()
+		for i := range 1000 {
+			ch <- i
+			time.Sleep(1)
+		}
+		close(ch)
 	}()
+	interpreter.Run(ch)
 	ctx.Run()
 }
