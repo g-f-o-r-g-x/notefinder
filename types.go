@@ -50,6 +50,15 @@ const (
 	FlagNotify   = 1 << 2
 )
 
+type Markup int
+
+const (
+	MarkupNone Markup = iota
+	Markdown
+	MarkupHTML
+	MarkupTodoTxt
+)
+
 type NoteType int
 
 const (
@@ -71,11 +80,21 @@ type Note struct {
 	flags      uint8
 	Properties map[string]string
 	Type       NoteType
+	Markup     Markup
 	Source     *Notebook
 }
 
 func NewNote(ctx *Context, uuid uint64, title, body string) *Note {
 	return &Note{context: ctx, UUID: uuid, Title: title, Body: body}
+}
+
+func (self *Note) SetBody(body string) {
+	self.Body = body
+	self.detectMarkup()
+}
+
+func (self *Note) detectMarkup() {
+	self.Markup = MarkupNone
 }
 
 func (self *Note) ToHV() *C.SV {
