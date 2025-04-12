@@ -27,15 +27,17 @@ func main() {
 
 	ch := make(chan int, 1)
 
-	interpreter := NewInterpreter()
-	defer interpreter.Destroy()
 	go func() {
 		for i := range 1000 {
 			ch <- i
-			time.Sleep(1)
+			time.Sleep(1 * time.Second)
 		}
 		close(ch)
 	}()
-	interpreter.Run(ch)
+	go func() {
+		interpreter := NewInterpreter()
+		defer interpreter.Destroy()
+		interpreter.Run(ch)
+	}()
 	ctx.Run()
 }

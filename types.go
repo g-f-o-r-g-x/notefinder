@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+/*
+#include <EXTERN.h>
+#include "perl.h"
+*/
+import "C"
+
 type Implementation interface {
 	LoadData() (map[uint64]*Note, error)
 	PutData(*Note) error
@@ -68,6 +74,12 @@ type Note struct {
 
 func NewNote(uuid uint64, title, body string) *Note {
 	return &Note{UUID: uuid, Title: title, Body: body}
+}
+
+func NoteToHV(note *Note) *C.HV {
+	hv := C.newHV()
+
+	return nil
 }
 
 func NewNotebook(name string, impl Implementation, config map[string]string,

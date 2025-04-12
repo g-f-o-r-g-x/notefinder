@@ -1,10 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"runtime"
-)
-
 /*
 #include <EXTERN.h>
 #include "perl.h"
@@ -12,6 +7,8 @@ import (
 import "C"
 
 import (
+	"fmt"
+	"runtime"
 	"time"
 	"unsafe"
 )
