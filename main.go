@@ -24,7 +24,10 @@ func main() {
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
 
-	interpreter := NewInterpreter()
-	go interpreter.Run()
+	go func() {
+		interpreter := NewInterpreter()
+		interpreter.Run()
+		defer interpreter.Destroy()
+	}()
 	ctx.Run()
 }

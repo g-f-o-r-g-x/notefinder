@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-//	"time"
+	//	"time"
 
 	fyne "fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -134,9 +134,9 @@ func (w *Window) Refresh() {
 			notes = append(notes, n)
 			mu.Unlock()
 
-//			time.AfterFunc(10*time.Millisecond, func() {
-				w.window.Canvas().Refresh(w.list)
-//			})
+			//			time.AfterFunc(10*time.Millisecond, func() {
+			w.window.Canvas().Refresh(w.list)
+			//			})
 		}
 		fmt.Println("len(ch) afterwards", len(ch))
 		fmt.Println("Results to display:", nResults)
