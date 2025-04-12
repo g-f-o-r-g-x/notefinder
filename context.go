@@ -37,11 +37,11 @@ func NewContext() *Context {
 		base: base{
 			context: context.Background(),
 		},
-		Data:        NewStore(),
 		Application: a,
 		Requests:    make(chan Request, 1),
 	}
 
+	ctx.Data = NewStore(ctx)
 	ctx.Notebooks = readConfig(ctx)
 	ctx.MainWindow = NewWindow(ctx)
 	return ctx
@@ -49,6 +49,7 @@ func NewContext() *Context {
 
 func (ctx *Context) Run() {
 	ctx.MainWindow.Show()
+	close(ctx.Requests)
 }
 
 func getAbsolutePath() string {

@@ -23,5 +23,8 @@ func main() {
 	go worker(ctx)
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
+
+	interpreter := NewInterpreter()
+	go interpreter.Run()
 	ctx.Run()
 }

@@ -1,10 +1,7 @@
 package main
 
 import (
-	"sort"
-	"strings"
 	"time"
-	"unsafe"
 )
 
 type Implementation interface {
@@ -13,56 +10,6 @@ type Implementation interface {
 	UpdateData(*Note, *Note) error
 	DeleteData(*Note) error
 	CanWrite() (bool, error)
-}
-
-type Store struct {
-	data map[NoteKey]*Note
-}
-
-func NewStore() *Store {
-	return &Store{data: make(map[NoteKey]*Note)}
-}
-
-func (self *Store) Get(key NoteKey) (*Note, bool) {
-	v, ok := self.data[key]
-	return v, ok
-}
-
-func (self *Store) Put(key NoteKey, note *Note) {
-	self.data[key] = note
-}
-
-func (self *Store) Delete(key NoteKey) {
-	delete(self.data, key)
-}
-
-func (self *Store) Query(query *Query) []*Note {
-	res := make([]*Note, 0, len(self.data))
-	keys := make([]NoteKey, 0, len(self.data))
-
-	for key, note := range self.data {
-		if query.Haystack != nil && query.Haystack != key.Notebook {
-			continue
-		}
-		if !strings.Contains(note.Title, query.Needle) {
-			continue
-		}
-		keys = append(keys, key)
-	}
-
-	sort.Slice(keys, func(i, j int) bool {
-		if keys[i].Notebook != keys[j].Notebook {
-			return uintptr(unsafe.Pointer(keys[i].Notebook)) <
-				uintptr(unsafe.Pointer(keys[j].Notebook))
-		}
-		return keys[i].UUID < keys[j].UUID
-	})
-
-	for _, key := range keys {
-		res = append(res, self.data[key])
-	}
-
-	return res
 }
 
 type NotebookType int

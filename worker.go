@@ -25,8 +25,6 @@ func worker(ctx *Context) {
 			}
 
 			for _, oldItem := range ctx.Data.Query(&Query{Haystack: notebook}) {
-				log.Println(oldItem.UUID, oldItem.Title)
-
 				_, stillHave := data[oldItem.UUID]
 				if !stillHave {
 					ctx.Data.Delete(NoteKey{Notebook: notebook, UUID: oldItem.UUID})
@@ -54,10 +52,12 @@ func worker(ctx *Context) {
 		select {
 		case <-ticker.C:
 			doWork()
+			return
 		case req := <-ctx.Requests:
 			switch req {
 			case RequestLoadData:
 				doWork()
+				return
 			case RequestStop:
 				return
 			}

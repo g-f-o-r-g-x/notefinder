@@ -17,12 +17,12 @@ type ClickableItem struct {
 	content  fyne.CanvasObject
 	parent   *Window
 	ID       int
-	OnTapped func(id int)
+	OnTapped func(parent *Window, id int)
 	lastTap  time.Time
 }
 
 func NewClickableItem(id int, content fyne.CanvasObject, parent *Window,
-	onTapped func(id int)) *ClickableItem {
+	onTapped func(parent *Window, id int)) *ClickableItem {
 	ci := &ClickableItem{
 		content:  content,
 		parent:   parent,
@@ -44,7 +44,7 @@ func (c *ClickableItem) Tapped(_ *fyne.PointEvent) {
 	now := time.Now()
 	if now.Sub(c.lastTap) < 300*time.Millisecond {
 		if c.OnTapped != nil {
-			c.OnTapped(c.ID)
+			c.OnTapped(c.parent, c.ID)
 		}
 	}
 	c.lastTap = now

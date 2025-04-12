@@ -17,5 +17,6 @@ func (i *Indexer) Run() {
 	for {
 		log.Println("Indexer is running...")
 		time.Sleep(5 * time.Second)
+		return
 	}
 }
