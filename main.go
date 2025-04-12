@@ -20,15 +20,16 @@ func main() {
 	log.Println(appName, appVersion)
 	ctx := NewContext()
 
-	ch := make(chan *Note, 1)
-	go worker(ctx, ch)
+	toInterp := make(chan *Note, 1)
+	worker := NewWorker(ctx, toInterp)
+	go worker.Run()
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
 
 	go func() {
 		ctx.interpreter = NewInterpreter()
 		defer ctx.interpreter.Destroy()
-		ctx.interpreter.Run(ch)
+		ctx.interpreter.Run(toInterp)
 	}()
 	ctx.Run()
 }
