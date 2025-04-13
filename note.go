@@ -69,20 +69,34 @@ func (self *Note) ToHV() *C.SV {
 
 	hv := C.Perl_newHV(perl)
 
-	mapping := map[string]string{
+	mapping := map[string]interface{}{
+		"UUID": self.UUID,
 		"Title": self.Title,
 		"Body": self.Body,
 		"URI": self.URI,
 		"MimeType": self.MimeType,
+		"Type": self.Type,
 	}
 
 	for key, value := range mapping {
 		cKey := C.CString(key)
 		defer C.free(unsafe.Pointer(cKey))
-		cValue := C.CString(value)
-		defer C.free(unsafe.Pointer(cValue))
-		valueSV := C.Perl_newSVpvn(perl, cValue, C.strlen(cValue))
-		C.Perl_hv_store(perl, hv, cKey, C.I32(C.strlen(cKey)), valueSV, 0)
+
+		switch v := value.(type) {
+		case int:
+			C.Perl_hv_store(perl, hv, cKey, C.I32(C.strlen(cKey)),
+				C.Perl_newSViv(perl, C.I64(v)), 0)
+		case uint64:
+			C.Perl_hv_store(perl, hv, cKey, C.I32(C.strlen(cKey)),
+				C.Perl_newSViv(perl, C.I64(v)), 0) // FIXME: signedness
+		case string:
+			cValue := C.CString(v)
+			defer C.free(unsafe.Pointer(cValue))
+			valueSV := C.Perl_newSVpvn(perl, cValue, C.strlen(cValue))
+			C.Perl_hv_store(perl, hv, cKey, C.I32(C.strlen(cKey)), valueSV, 0)
+		default:
+			continue
+		}
 	}
 	return C.Perl_newRV_noinc(perl, (*C.SV)(unsafe.Pointer(hv)))
 }
