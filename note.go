@@ -64,12 +64,8 @@ func (self *Note) detectMarkup() {
 	self.Markup = MarkupNone
 }
 
-func (self *Note) ToHV() *C.SV {
-	perl := self.context.interpreter.perl
-
-	hv := C.Perl_newHV(perl)
-
-	mapping := map[string]interface{}{
+func (self *Note) mapping() map[string]interface{} {
+	return map[string]interface{}{
 		"UUID": self.UUID,
 		"Title": self.Title,
 		"Body": self.Body,
@@ -77,8 +73,13 @@ func (self *Note) ToHV() *C.SV {
 		"MimeType": self.MimeType,
 		"Type": self.Type,
 	}
+}
 
-	for key, value := range mapping {
+func (self *Note) ToHV() *C.SV {
+	perl := self.context.interpreter.perl
+
+	hv := C.Perl_newHV(perl)
+	for key, value := range self.mapping() {
 		cKey := C.CString(key)
 		defer C.free(unsafe.Pointer(cKey))
 
