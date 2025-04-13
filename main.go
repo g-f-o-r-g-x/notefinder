@@ -23,9 +23,11 @@ func main() {
 	toInterp := make(chan *Note, 1)
 	worker := NewWorker(ctx, toInterp)
 	go worker.Run()
+
 	indexer := &Indexer{context: ctx}
 	go indexer.Run()
 
+	/* Initialize within goroutine to lock to thread */
 	go func() {
 		ctx.interpreter = NewInterpreter()
 		defer ctx.interpreter.Destroy()

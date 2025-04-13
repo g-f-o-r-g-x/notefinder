@@ -8,6 +8,16 @@ import (
 	"unsafe"
 )
 
+type NoteKey struct {
+	Notebook *Notebook
+	UUID     uint64
+}
+
+type Query struct {
+	Needle   string
+	Haystack *Notebook
+}
+
 type Store struct {
 	context *Context
 	data    map[NoteKey]*Note
