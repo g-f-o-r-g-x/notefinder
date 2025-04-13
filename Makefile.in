@@ -9,6 +9,10 @@ CGO_LDFLAGS = @CGO_LDFLAGS@
 
 PERL_VENDORLIB = @PERL_VENDORLIB@
 
+datadir = @datadir@
+applicationsdir = $(datadir)/applications
+iconsdir = $(datadir)/icons/hicolor/64x64/apps
+
 all: compile
 
 compile:
@@ -21,3 +25,7 @@ install: compile
 	cp ./$(NAME) $(DESTDIR)$(bindir)/$(NAME)
 	mkdir -p $(DESTDIR)$(PERL_VENDORLIB)
 	cp ./Notefinder.pm $(DESTDIR)$(PERL_VENDORLIB)/Notefinder.pm
+	mkdir -p $(DESTDIR)$(applicationsdir)
+	cp notefinder.desktop $(DESTDIR)$(applicationsdir)/notefinder.desktop
+	mkdir -p $(DESTDIR)$(iconsdir)
+	cp images/notefinder.png $(DESTDIR)$(iconsdir)/notefinder.png
