@@ -18,45 +18,45 @@ import (
 func makeToolbar(ctx *Context) *widget.Toolbar {
 	return widget.NewToolbar(
 		widget.NewToolbarAction(theme.HomeIcon(), func() {
-			ctx.MainWindow.SetQuery(&Query{Needle: ""})
-			ctx.MainWindow.Refresh()
+			ctx.Window.SetQuery(&Query{Needle: ""})
+			ctx.Window.Refresh()
 		}),
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
 		widget.NewToolbarAction(theme.MediaRecordIcon(), func() {}),
 		widget.NewToolbarAction(theme.VisibilityOffIcon(), func() {}),
 		widget.NewToolbarAction(theme.DeleteIcon(), func() {
-			if ctx.MainWindow.selectedNote == nil {
+			if ctx.Window.selectedNote == nil {
 				return
 			}
 			warning := fmt.Sprintf("Are you sure you want to delete \"%s\"?",
-				ctx.MainWindow.selectedNote.Title)
+				ctx.Window.selectedNote.Title)
 			dialog.ShowConfirm("", warning, func(yes bool) {
 				if yes {
-					err := ctx.MainWindow.selectedNote.Source.DeleteData(
-						ctx.MainWindow.selectedNote,
+					err := ctx.Window.selectedNote.Source.DeleteData(
+						ctx.Window.selectedNote,
 					)
 					if err != nil {
-						dialog.ShowError(err, ctx.MainWindow.window)
+						dialog.ShowError(err, ctx.Window.window)
 					}
-					ctx.MainWindow.selectedNote = nil
-					ctx.MainWindow.selectedListID = -1
+					ctx.Window.selectedNote = nil
+					ctx.Window.selectedListID = -1
 					ctx.Requests <- RequestLoadData
 				}
-			}, ctx.MainWindow.window)
+			}, ctx.Window.window)
 		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
-			content := ctx.MainWindow.ClipboardContent()
+			content := ctx.Window.ClipboardContent()
 			note := NewNote(ctx, 0, shortText(content, 32), content+"\n")
-			currentNotebook := ctx.MainWindow.CurrentWorkingNotebook()
+			currentNotebook := ctx.Window.CurrentWorkingNotebook()
 
 			if currentNotebook == nil {
-				dialog.ShowError(errors.New("Please select current working notebook"), ctx.MainWindow.window)
+				dialog.ShowError(errors.New("Please select current working notebook"), ctx.Window.window)
 				return
 			}
 
 			canWrite, reason := currentNotebook.CanWrite()
 			if !canWrite {
-				dialog.ShowError(reason, ctx.MainWindow.window)
+				dialog.ShowError(reason, ctx.Window.window)
 				return
 			}
 
@@ -64,7 +64,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				log.Println(err)
 			}
 			ctx.Requests <- RequestLoadData
-			ctx.MainWindow.Refresh()
+			ctx.Window.Refresh()
 			log.Println(content)
 		}),
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
@@ -94,7 +94,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 
 			content := container.NewBorder(header, footer, nil, nil, img)
 
-			dialog.ShowCustom("About", "Close", content, ctx.MainWindow.window)
+			dialog.ShowCustom("About", "Close", content, ctx.Window.window)
 
 		}),
 	)

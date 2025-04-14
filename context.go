@@ -26,7 +26,7 @@ type Context struct {
 	Notebooks   map[string]*Notebook
 	Data        *Store
 	Application fyne.App
-	MainWindow  *Window
+	Window  *Window
 	interpreter *Interpreter
 	Requests    chan Request
 }
@@ -43,12 +43,12 @@ func NewContext() *Context {
 
 	ctx.Data = NewStore(ctx)
 	ctx.Notebooks = readConfig(ctx)
-	ctx.MainWindow = NewWindow(ctx)
+	ctx.Window = NewWindow(ctx)
 	return ctx
 }
 
 func (ctx *Context) Run() {
-	ctx.MainWindow.Show()
+	ctx.Window.Show()
 	close(ctx.Requests)
 }
 

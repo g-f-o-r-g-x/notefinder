@@ -55,7 +55,7 @@ func (w *Worker) Run() {
 			}
 		}
 		if haveUpdates {
-			w.context.MainWindow.Refresh()
+			w.context.Window.Refresh()
 		}
 	}
 

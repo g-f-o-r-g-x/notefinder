@@ -67,7 +67,7 @@ func makeList(ctx *Context) *widget.List {
 			detail.TextStyle.Italic = true
 
 			vbox := container.New(layout.NewVBoxLayout(), topRow, detail)
-			return NewClickableItem(0, vbox, ctx.MainWindow, nil)
+			return NewClickableItem(0, vbox, ctx.Window, nil)
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 		})

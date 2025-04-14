@@ -7,11 +7,11 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	//	"time"
 
 	fyne "fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
@@ -270,6 +270,11 @@ func (w *Window) Show() {
 	w.window.Resize(fyne.NewSize(800, 600))
 	w.window.CenterOnScreen()
 
+	ctrlQ := &desktop.CustomShortcut{KeyName: fyne.KeyQ, Modifier: fyne.KeyModifierControl}
+	w.window.Canvas().AddShortcut(ctrlQ, func(sc fyne.Shortcut) {
+		w.app.Quit()
+	})
+
 	w.context.Requests <- RequestLoadData
 	w.window.ShowAndRun()
 }
@@ -279,7 +284,7 @@ func (w *Window) CurrentWorkingNotebook() *Notebook {
 }
 
 func (w *Window) makeLayout() *fyne.Container {
-	w.searchInput = w.context.MainWindow.makeSearchInput()
+	w.searchInput = w.context.Window.makeSearchInput()
 	tb := container.New(layout.NewFormLayout(), makeToolbar(w.context), w.searchInput)
 
 	names := make([]string, 0, len(w.context.Notebooks))
