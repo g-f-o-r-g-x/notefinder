@@ -49,11 +49,13 @@ type Note struct {
 	Properties map[string]string
 	Type       NoteType
 	Markup     Markup
+	MatchingFields []string
 	Source     *Notebook
 }
 
 func NewNote(ctx *Context, uuid uint64, title string) *Note {
-	return &Note{context: ctx, UUID: uuid, Title: title}
+	return &Note{context: ctx, UUID: uuid, Title: title,
+		MatchingFields: make([]string, 0, 4)}
 }
 
 func (n *Note) SetFlag(flag uint32) {
@@ -78,11 +80,6 @@ func (n *Note) FlagsString() string {
 		}
 	}
 	return string(out[:])
-}
-
-func (self *Note) SetBody(body string) {
-	self.Body = body
-	self.detectMarkup()
 }
 
 func (self *Note) Set(key string, value interface{}, act bool) {

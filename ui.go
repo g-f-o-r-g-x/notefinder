@@ -167,9 +167,10 @@ func (w *Window) Refresh() {
 		title.TextStyle.Bold = (i == w.selectedListID)
 		icon.SetResource(noteIcon(note))
 		title.SetText(note.Title)
+		matchesText := fmt.Sprintf(" (matches:  %s)", strings.Join(note.MatchingFields, ", "))
 
 		if note.Body != "" {
-			detail.Text = shortText(note.Body, 64)
+			detail.Text = shortText(note.Body, 48)
 		} else {
 			switch note.Type {
 			case NoteTypeBookmark:
@@ -179,6 +180,10 @@ func (w *Window) Refresh() {
 			default:
 				detail.Text = ""
 			}
+		}
+
+		if w.query.Needle != "" {
+			detail.Text += matchesText
 		}
 
 		detail.Refresh()
@@ -292,8 +297,6 @@ func (w *Window) makeSearchInput() *widget.Entry {
 		)
 
 	}
-	input.OnSubmitted = input.OnChanged
-
 	return input
 }
 

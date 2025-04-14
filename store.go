@@ -43,6 +43,7 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 	var wg sync.WaitGroup
 
 	for key, note := range self.data {
+		note.MatchingFields = make([]string, 0, 4)
 		if query.Haystack != nil && query.Haystack != key.Notebook {
 			continue
 		}
@@ -52,15 +53,19 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 			continue
 		}
 
+		var matchFound bool
 		for key, desc := range note.mapping() {
 			if !desc.Searchable {
 				continue
 			}
 			value := desc.Ptr.(*string)
 			if strings.Contains(strings.ToLower(*value), strings.ToLower(query.Needle)) {
-				self.context.Log("Match found in:", key)
-				out <- note
-				break
+				note.MatchingFields = append(note.MatchingFields, key)
+
+				if !matchFound {
+					out <- note
+					matchFound = true
+				}
 			}
 		}
 
@@ -70,6 +75,7 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 				defer wg.Done()
 				pdfFilePath := strings.TrimPrefix(note.URI, "file://")
 				if pdfMatchesPattern(pdfFilePath, query.Needle) {
+					note.MatchingFields = append(note.MatchingFields, "PDF content")
 					out <- note
 				}
 			}(note)

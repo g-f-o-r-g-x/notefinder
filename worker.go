@@ -44,7 +44,7 @@ func (w *Worker) Run() {
 			for uuid, item := range data {
 				key := NoteKey{Notebook: notebook, UUID: uuid}
 				existingItem, ok := w.context.Data.Get(key)
-				if ok && reflect.DeepEqual(item, existingItem) {
+				if ok && reflect.DeepEqual(item, existingItem) { // FIXME: this doesn't work
 					continue
 				}
 				item.Source = notebook
@@ -63,12 +63,10 @@ func (w *Worker) Run() {
 		select {
 		case <-ticker.C:
 			doWork()
-			return
 		case req := <-w.context.Requests:
 			switch req {
 			case RequestLoadData:
 				doWork()
-				return
 			case RequestStop:
 				return
 			}

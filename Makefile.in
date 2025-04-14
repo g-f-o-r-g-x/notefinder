@@ -9,9 +9,9 @@ CGO_LDFLAGS = @CGO_LDFLAGS@
 
 PERL_VENDORLIB = @PERL_VENDORLIB@
 
-datadir = @datadir@
-applicationsdir = $(datadir)/applications
-iconsdir = $(datadir)/icons/hicolor/64x64/apps
+datarootdir = @datarootdir@
+applicationsdir = $(datarootdir)/applications
+iconsdir = $(datarootdir)/icons/hicolor/64x64/apps
 
 all: compile
 
