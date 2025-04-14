@@ -67,7 +67,8 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			log.Println(err)
 			continue
 		}
-		data[stat.Ino] = NewNote(self.context, stat.Ino, f.Name(), body)
+		data[stat.Ino] = NewNote(self.context, stat.Ino, f.Name())
+		data[stat.Ino].Set("Body", body, true)
 
 		if body != "" {
 			data[stat.Ino].Type = NoteTypeRegular

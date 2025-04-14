@@ -68,7 +68,8 @@ func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 			log.Fatal(err)
 		}
 
-		data[uint64(id)] = NewNote(self.context, uint64(id), title, description)
+		data[uint64(id)] = NewNote(self.context, uint64(id), title)
+		data[uint64(id)].Set("Body", description, true)
 		data[uint64(id)].URI = url
 		data[uint64(id)].Type = NoteTypeBookmark
 	}

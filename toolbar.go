@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 
 	fyne "fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -46,7 +47,9 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.Window.ClipboardContent()
-			note := NewNote(ctx, 0, shortText(content, 32), content+"\n")
+			title := strings.TrimSuffix(shortText(content, 32), ":")
+			note := NewNote(ctx, 0, title)
+			note.Set("Body", content+"\n", true)
 			currentNotebook := ctx.Window.CurrentWorkingNotebook()
 
 			if currentNotebook == nil {

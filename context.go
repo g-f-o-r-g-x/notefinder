@@ -27,7 +27,7 @@ type Context struct {
 	Notebooks   map[string]*Notebook
 	Data        *Store
 	Application fyne.App
-	Window  *Window
+	Window      *Window
 	interpreter *Interpreter
 	Requests    chan Request
 }
@@ -53,7 +53,7 @@ func (ctx *Context) Run() {
 	close(ctx.Requests)
 }
 
-func (ctx *Context) Log(l ...any){
+func (ctx *Context) Log(l ...any) {
 	log.Println(l...)
 }
 
