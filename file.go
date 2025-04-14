@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -49,8 +50,8 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 		if f.IsDir() {
 			continue
 		}
-
-		filePath := filepath.Join(self.path, f.Name())
+		fileName := string(f.Name())
+		filePath := filepath.Join(self.path, fileName)
 		content, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			log.Println(err)
@@ -67,20 +68,36 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			log.Println(err)
 			continue
 		}
-		data[stat.Ino] = NewNote(self.context, stat.Ino, f.Name())
-		data[stat.Ino].Set("Body", body, true)
+
+		var setArchived bool
+		var name string
+		if len(fileName) >= 2 && strings.HasPrefix(fileName, ".") {
+			setArchived = true
+			name = fileName[1:]
+		} else {
+			name = fileName
+		}
+
+		note := NewNote(self.context, stat.Ino, name)
+		note.Set("Body", body, true)
+
+		if setArchived {
+			note.SetFlag(FlagArchived)
+		}
 
 		if body != "" {
-			data[stat.Ino].Type = NoteTypeRegular
+			note.Type = NoteTypeRegular
 		} else {
-			data[stat.Ino].Type = NoteTypeFile
-			data[stat.Ino].URI = "file://" + filePath
+			note.Type = NoteTypeFile
+			note.URI = "file://" + filePath
 
 			mime, err := mimetype.DetectFile(filePath)
 			if err == nil {
-				data[stat.Ino].MimeType = mime.String()
+				note.MimeType = mime.String()
 			}
 		}
+
+		data[stat.Ino] = note
 	}
 
 	return data, nil
