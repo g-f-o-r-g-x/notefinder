@@ -39,24 +39,31 @@ func (self *Store) Delete(key NoteKey) {
 	delete(self.data, key)
 }
 
-func sendNote(out chan<- *Note, note *Note, query *Query, nResults *int) {
-	*nResults++
-	out <- note
-}
-
 func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 	var wg sync.WaitGroup
-	nResults := 0
 
 	for key, note := range self.data {
 		if query.Haystack != nil && query.Haystack != key.Notebook {
 			continue
 		}
 
-		if query.Needle == "" || strings.Contains(note.Title, query.Needle) {
-			sendNote(out, note, query, &nResults)
+		if query.Needle == "" {
+			out <- note
 			continue
 		}
+
+		for key, desc := range note.mapping() {
+			if !desc.Searchable {
+				continue
+			}
+			value := desc.Ptr.(*string)
+			if strings.Contains(strings.ToLower(*value), strings.ToLower(query.Needle)) {
+				self.context.Log("Match found in:", key)
+				out <- note
+				break
+			}
+		}
+
 		if note.MimeType == "application/pdf" {
 			wg.Add(1)
 			go func(note *Note) {

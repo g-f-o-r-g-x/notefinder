@@ -86,7 +86,7 @@ func (self *Note) SetBody(body string) {
 }
 
 func (self *Note) Set(key string, value interface{}, act bool) {
-	if_ := self.mapping()[key]
+	if_ := self.mapping()[key].Ptr
 
 	switch ptr := if_.(type) {
 	case *string:
@@ -111,15 +111,20 @@ func (self *Note) detectMarkup() {
 	self.Markup = MarkupNone
 }
 
-func (self *Note) mapping() map[string]interface{} {
-	return map[string]interface{}{
-		"UUID":     &self.UUID,
-		"Title":    &self.Title,
-		"Body":     &self.Body,
-		"URI":      &self.URI,
-		"MimeType": &self.MimeType,
-		"Type":     &self.Type,
-		"flags":    &self.flags,
+type FieldDescription struct {
+	Ptr        interface{}
+	Searchable bool
+}
+
+func (self *Note) mapping() map[string]*FieldDescription {
+	return map[string]*FieldDescription{
+		"UUID":     &FieldDescription{Ptr: &self.UUID},
+		"Title":    &FieldDescription{Ptr: &self.Title, Searchable: true},
+		"Body":     &FieldDescription{Ptr: &self.Body, Searchable: true},
+		"URI":      &FieldDescription{Ptr: &self.URI, Searchable: true},
+		"MimeType": &FieldDescription{Ptr: self.MimeType},
+		"Type":     &FieldDescription{Ptr: &self.Type},
+		"flags":    &FieldDescription{Ptr: &self.flags},
 	}
 }
 
@@ -127,10 +132,11 @@ func (self *Note) ToHV() *C.SV {
 	perl := self.context.interpreter.perl
 
 	hv := C.Perl_newHV(perl)
-	for key, value := range self.mapping() {
+	for key, desc := range self.mapping() {
 		cKey := C.CString(key)
 		defer C.free(unsafe.Pointer(cKey))
 
+		value := desc.Ptr
 		switch v := value.(type) {
 		case *uint32:
 
