@@ -41,7 +41,6 @@ func (self *Store) Delete(key NoteKey) {
 }
 
 func sendNote(out chan<- *Note, note *Note, query *Query, nResults *int) {
-	fmt.Printf("Sending note titled '%s' for query: '%s'\n", note.Title, query.Needle)
 	*nResults++
 	out <- note
 }
@@ -78,7 +77,6 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 			close(out)
 		}()
 	*/
-	fmt.Println("Results:", nResults)
 	close(out)
 }
 

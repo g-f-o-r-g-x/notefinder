@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os/user"
 	"path/filepath"
 
@@ -50,6 +51,10 @@ func NewContext() *Context {
 func (ctx *Context) Run() {
 	ctx.Window.Show()
 	close(ctx.Requests)
+}
+
+func (ctx *Context) Log(l ...any){
+	log.Println(l...)
 }
 
 func getAbsolutePath() string {

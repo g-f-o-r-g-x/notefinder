@@ -65,7 +65,6 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			}
 			ctx.Requests <- RequestLoadData
 			ctx.Window.Refresh()
-			log.Println(content)
 		}),
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
 			ctx.Requests <- RequestLoadData

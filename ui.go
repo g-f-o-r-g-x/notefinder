@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"runtime"
 	"strings"
@@ -110,7 +109,6 @@ func openNote(parent *Window, id int) {
 }
 
 func (w *Window) Refresh() {
-	fmt.Println("Entry to:", currentFunction())
 	currentNotebook := w.CurrentWorkingNotebook()
 	if currentNotebook != nil && w.filterByNotebook {
 		w.query.Haystack = currentNotebook
@@ -126,34 +124,23 @@ func (w *Window) Refresh() {
 
 	nResults := 0
 	go func() {
-		fmt.Println("len(ch) before reading", len(ch))
 		for note := range ch {
 			nResults++
-			n := note // capture
+			n := note
 			mu.Lock()
 			notes = append(notes, n)
 			mu.Unlock()
-
-			//			time.AfterFunc(10*time.Millisecond, func() {
 			w.window.Canvas().Refresh(w.list)
-			//			})
 		}
-		fmt.Println("len(ch) afterwards", len(ch))
-		fmt.Println("Results to display:", nResults)
-		fmt.Println("w.List.Length():", w.list.Length())
-		fmt.Println("-------------------")
 	}()
 
 	w.list.Length = func() int {
-		fmt.Println("Entry to:", currentFunction())
 		mu.Lock()
 		defer mu.Unlock()
 		sz := len(notes)
-		//		fmt.Println("Length() returning:", sz)
 		return sz
 	}
 	w.list.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
-		fmt.Println("Entry to:", currentFunction())
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -191,70 +178,6 @@ func (w *Window) Refresh() {
 		detail.Refresh()
 		w.listItemIDToNote[i] = note
 
-	}
-
-	w.list.Refresh()
-}
-
-func (w *Window) Refresh2() {
-	currentNotebook := w.CurrentWorkingNotebook()
-	if currentNotebook != nil && w.filterByNotebook {
-		w.query.Haystack = w.CurrentWorkingNotebook()
-	} else {
-		w.query.Haystack = nil
-	}
-	data := w.context.Data.Query(w.query)
-
-	w.list.Length = func() int {
-		fmt.Println("Entry to:", currentFunction())
-		return len(data)
-	}
-	w.list.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
-		fmt.Println("Entry to:", currentFunction())
-		item := o.(*ClickableItem)
-		item.ID = i
-		item.OnTapped = openNote
-
-		vbox := item.content.(*fyne.Container)
-		rows := vbox.Objects
-
-		topRow := rows[0].(*fyne.Container)
-		detail := rows[1].(*canvas.Text)
-
-		icon := topRow.Objects[0].(*widget.Icon)
-		title := topRow.Objects[1].(*widget.Label)
-
-		note := data[i]
-
-		// Set title to bold if item is selected
-		if i == w.selectedListID {
-			title.TextStyle.Bold = true
-		} else {
-			title.TextStyle.Bold = false
-		}
-
-		// Update the rest of the details and text
-		icon.SetResource(noteIcon(note))
-		title.SetText(note.Title)
-
-		if note.Body != "" {
-			detail.Text = shortText(note.Body, 64)
-		} else {
-			switch note.Type {
-			case NoteTypeBookmark:
-				detail.Text = note.URI
-			case NoteTypeFile:
-				detail.Text = note.MimeType
-			default:
-				detail.Text = ""
-			}
-		}
-
-		// Refresh the detail text after the update
-		detail.Refresh()
-
-		// Store the note in the mapping
-		w.listItemIDToNote[i] = note
 	}
 
 	w.list.Refresh()

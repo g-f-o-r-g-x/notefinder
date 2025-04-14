@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cheggaaa/go-poppler"
@@ -16,7 +15,7 @@ func pdfMatchesPattern(filename string, pattern string) bool {
 		if strings.Contains(
 			strings.ToLower(page.Text()),
 			strings.ToLower(pattern)) {
-			fmt.Println("Fragment:", page.Text())
+			//fmt.Println("Fragment:", page.Text())
 			page.Close()
 			return true
 		}

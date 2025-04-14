@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 )
 
@@ -15,7 +14,6 @@ func NewIndexer(ctx *Context) *Indexer {
 
 func (i *Indexer) Run() {
 	for {
-		log.Println("Indexer is running...")
 		time.Sleep(5 * time.Second)
 		return
 	}
