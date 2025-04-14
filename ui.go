@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"runtime"
 	"strings"
@@ -24,6 +25,7 @@ type Window struct {
 	window           fyne.Window
 	list             *widget.List
 	searchInput      *widget.Entry
+	statusBar        *widget.Label
 	app              fyne.App
 	context          *Context
 	query            *Query
@@ -36,7 +38,7 @@ type Window struct {
 
 func NewWindow(ctx *Context) *Window {
 	mainWindow := ctx.Application.NewWindow(appName)
-	w := &Window{window: mainWindow, app: ctx.Application, context: ctx,
+	w := &Window{window: mainWindow, statusBar: widget.NewLabel(""), app: ctx.Application, context: ctx,
 		listItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
 
 	w.selectedListID = -1
@@ -131,6 +133,8 @@ func (w *Window) Refresh() {
 			mu.Lock()
 			notes = append(notes, n)
 			mu.Unlock()
+			status := fmt.Sprintf("%d results", nResults)
+			w.statusBar.SetText(status)
 			w.list.Refresh() // sic!
 			//w.window.Canvas().Refresh(w.list)
 		}
@@ -229,6 +233,7 @@ func (w *Window) makeLayout() *fyne.Container {
 	})
 	selector.PlaceHolder = "Current working notebook"
 	notebookSelector := container.New(layout.NewHBoxLayout(),
+		w.statusBar,
 		selector,
 		widget.NewCheck("Filter", func(value bool) {
 			w.filterByNotebook = value
