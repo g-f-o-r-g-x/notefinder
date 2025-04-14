@@ -58,6 +58,18 @@ func NewNote(ctx *Context, uuid uint64, title string) *Note {
 		MatchingFields: make([]string, 0, 4)}
 }
 
+func (this *Note) SameAs(other *Note) bool {
+	if other.ModifiedAt != this.ModifiedAt {
+		return false
+	}
+	return (
+		this.UUID == other.UUID &&
+		this.Title == other.Title &&
+		this.Body == other.Body &&
+		this.URI == other.URI &&
+		this.flags == other.flags)
+}
+
 func (n *Note) SetFlag(flag uint32) {
 	n.flags |= flag
 }

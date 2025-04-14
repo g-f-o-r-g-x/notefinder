@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"reflect"
+//	"reflect"
 	"time"
 )
 
@@ -24,7 +24,7 @@ func (w *Worker) Run() {
 			bookmarkConfig, NotebookAutoDiscovered)
 	}
 
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	doWork := func() {
 		var haveUpdates bool
 		for _, notebook := range w.context.Notebooks {
@@ -44,7 +44,8 @@ func (w *Worker) Run() {
 			for uuid, item := range data {
 				key := NoteKey{Notebook: notebook, UUID: uuid}
 				existingItem, ok := w.context.Data.Get(key)
-				if ok && reflect.DeepEqual(item, existingItem) { // FIXME: this doesn't work
+				//if ok && reflect.DeepEqual(item, existingItem) { // FIXME: this doesn't work
+				if ok && item.SameAs(existingItem) {
 					continue
 				}
 				item.Source = notebook
