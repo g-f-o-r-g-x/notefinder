@@ -15,6 +15,7 @@ const (
 	FlagArchived = 1 << 0
 	FlagReadOnly = 1 << 1
 	FlagNotify   = 1 << 2
+	FlagStarred  = 1 << 3
 )
 
 type Markup int

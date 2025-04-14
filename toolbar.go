@@ -23,28 +23,6 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			ctx.Window.Refresh()
 		}),
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
-		widget.NewToolbarAction(theme.MediaRecordIcon(), func() {}),
-		widget.NewToolbarAction(theme.VisibilityOffIcon(), func() {}),
-		widget.NewToolbarAction(theme.DeleteIcon(), func() {
-			if ctx.Window.selectedNote == nil {
-				return
-			}
-			warning := fmt.Sprintf("Are you sure you want to delete \"%s\"?",
-				ctx.Window.selectedNote.Title)
-			dialog.ShowConfirm("", warning, func(yes bool) {
-				if yes {
-					err := ctx.Window.selectedNote.Source.DeleteData(
-						ctx.Window.selectedNote,
-					)
-					if err != nil {
-						dialog.ShowError(err, ctx.Window.window)
-					}
-					ctx.Window.selectedNote = nil
-					ctx.Window.selectedListID = -1
-					ctx.Requests <- RequestLoadData
-				}
-			}, ctx.Window.window)
-		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.Window.ClipboardContent()
 			title := strings.TrimSuffix(shortText(content, 32), ":")
@@ -68,6 +46,28 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			}
 			ctx.Requests <- RequestLoadData
 			ctx.Window.Refresh()
+		}),
+		widget.NewToolbarAction(theme.MediaRecordIcon(), func() {}),
+		widget.NewToolbarAction(theme.VisibilityOffIcon(), func() {}),
+		widget.NewToolbarAction(theme.DeleteIcon(), func() {
+			if ctx.Window.selectedNote == nil {
+				return
+			}
+			warning := fmt.Sprintf("Are you sure you want to delete \"%s\"?",
+				ctx.Window.selectedNote.Title)
+			dialog.ShowConfirm("", warning, func(yes bool) {
+				if yes {
+					err := ctx.Window.selectedNote.Source.DeleteData(
+						ctx.Window.selectedNote,
+					)
+					if err != nil {
+						dialog.ShowError(err, ctx.Window.window)
+					}
+					ctx.Window.selectedNote = nil
+					ctx.Window.selectedListID = -1
+					ctx.Requests <- RequestLoadData
+				}
+			}, ctx.Window.window)
 		}),
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
 			ctx.Requests <- RequestLoadData
