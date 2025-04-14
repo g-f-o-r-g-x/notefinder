@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	fyne "fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -130,7 +131,8 @@ func (w *Window) Refresh() {
 			mu.Lock()
 			notes = append(notes, n)
 			mu.Unlock()
-			w.window.Canvas().Refresh(w.list)
+			w.list.Refresh() // sic!
+			//w.window.Canvas().Refresh(w.list)
 		}
 	}()
 
@@ -265,46 +267,31 @@ func (w *Window) makeSearchInput() *widget.Entry {
 	input.SetPlaceHolder("Enter search query...")
 	input.ActionItem = widget.NewIcon(theme.SearchIcon())
 
-	//	var debounceMu sync.Mutex
-	//	var debounceTimer *time.Timer
-	//	const debounceDelay = 500 * time.Millisecond // adjust delay as needed
+	var debounceMu sync.Mutex
+	var debounceTimer *time.Timer
+	const debounceDelay = 500 * time.Millisecond
 
-	//input.OnChanged = func(query string) {
-	input.OnSubmitted = func(query string) {
-		//		debounceMu.Lock()
-		//		defer debounceMu.Unlock()
+	input.OnChanged = func(query string) {
+		debounceMu.Lock()
+		defer debounceMu.Unlock()
 
-		//		if debounceTimer != nil {
-		//			debounceTimer.Stop()
-		//		}
+		if debounceTimer != nil {
+			debounceTimer.Stop()
+		}
 
-		//		debounceTimer = time.AfterFunc(debounceDelay, func() {
-		w.query = &Query{Needle: query}
-		w.selectedListID = -1
-		w.Refresh()
+		debounceTimer = time.AfterFunc(debounceDelay, func() {
+			w.query = &Query{Needle: query}
+			w.selectedListID = -1
+			w.Refresh()
+		},
+		)
+
 	}
-	//)
-
-	//}
+	input.OnSubmitted = input.OnChanged
 
 	return input
 }
 
-/*
-func (w *Window) makeSearchInput() *widget.Entry {
-
-		input := widget.NewEntry()
-		input.SetPlaceHolder("Enter search query...")
-		input.ActionItem = widget.NewIcon(theme.SearchIcon())
-		input.OnChanged = func(query string) {
-			w.query = &Query{Needle: query}
-			w.selectedListID = -1
-			w.Refresh()
-		}
-
-		return input
-	}
-*/
 func noteIcon(note *Note) fyne.Resource {
 	switch note.Type {
 	case NoteTypeBookmark:

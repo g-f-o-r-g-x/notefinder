@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"strings"
 )
 
 const (
@@ -17,7 +18,8 @@ func main() {
 		}()
 	}
 
-	log.Println(appName, appVersion)
+	log.Println(appName, appVersion, "started")
+	log.Println(strings.Repeat("-", 24))
 	ctx := NewContext()
 
 	toInterp := make(chan *Note, 1)

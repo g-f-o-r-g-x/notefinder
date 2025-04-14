@@ -15,7 +15,7 @@ call_print_note(pTHX_ SV* note_ref)
     XPUSHs(note_ref);         // push argument
     PUTBACK;
 
-    call_pv("print_note", G_VOID); // call Perl function
+//    call_pv("print_note", G_VOID); // call Perl function
 
     FREETMPS;
     LEAVE;
@@ -24,7 +24,6 @@ call_print_note(pTHX_ SV* note_ref)
 import "C"
 
 import (
-	"fmt"
 	"runtime"
 	"time"
 	"unsafe"
@@ -79,8 +78,6 @@ func (i *Interpreter) Destroy() {
 
 func (i *Interpreter) Run(input <-chan *Note) {
 	for data := range input {
-		fmt.Println(data)
-		fmt.Println(data.ToHV())
 		C.call_print_note(i.perl, data.ToHV())
 		time.Sleep(1)
 	}

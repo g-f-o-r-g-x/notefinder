@@ -3,11 +3,9 @@ AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 
-# Detect Go if needed
 AC_PATH_PROG([GO], [go], [no])
 AS_IF([test "x$GO" = "xno"], [AC_MSG_ERROR([go compiler not found])])
 
-# Auto-detect Perl embed flags
 AC_SUBST([CGO_CFLAGS], [`perl -MExtUtils::Embed -e ccopts | sed -e 's/-D_GNU_SOURCE//g'`])
 AC_SUBST([CGO_LDFLAGS], [`perl -MExtUtils::Embed -e ldopts`])
 

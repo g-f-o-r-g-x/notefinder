@@ -107,7 +107,6 @@ func (self *Note) Set(key string, value interface{}, act bool) {
 }
 
 func (self *Note) detectMarkup() {
-	self.context.Log("detectMarkup() called")
 	self.Markup = MarkupNone
 }
 
@@ -125,8 +124,6 @@ func (self *Note) mapping() map[string]interface{} {
 
 func (self *Note) ToHV() *C.SV {
 	perl := self.context.interpreter.perl
-
-	self.context.Log("Flags:", self.FlagsString())
 
 	hv := C.Perl_newHV(perl)
 	for key, value := range self.mapping() {

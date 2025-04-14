@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -46,7 +45,7 @@ func sendNote(out chan<- *Note, note *Note, query *Query, nResults *int) {
 }
 
 func (self *Store) QueryStream(query *Query, out chan<- *Note) {
-	//	var wg sync.WaitGroup
+	var wg sync.WaitGroup
 	nResults := 0
 
 	for key, note := range self.data {
@@ -58,26 +57,21 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 			sendNote(out, note, query, &nResults)
 			continue
 		}
-		/*
-			if note.MimeType == "application/pdf" {
-				wg.Add(1)
-				go func(note *Note) {
-					defer wg.Done()
-					pdfFilePath := strings.TrimPrefix(note.URI, "file://")
-					if pdfMatchesPattern(pdfFilePath, query.Needle) {
-						out <- note
-					}
-				}(note)
-			}
-		*/
+		if note.MimeType == "application/pdf" {
+			wg.Add(1)
+			go func(note *Note) {
+				defer wg.Done()
+				pdfFilePath := strings.TrimPrefix(note.URI, "file://")
+				if pdfMatchesPattern(pdfFilePath, query.Needle) {
+					out <- note
+				}
+			}(note)
+		}
 	}
-	/*
-		go func() {
-			wg.Wait()
-			close(out)
-		}()
-	*/
-	close(out)
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
 }
 
 func (self *Store) Query(query *Query) []*Note {
@@ -91,7 +85,6 @@ func (self *Store) Query(query *Query) []*Note {
 			continue
 		}
 
-		fmt.Printf("query is: '%s'\n", query.Needle)
 		if query.Needle == "" {
 			keys = append(keys, key)
 			continue
@@ -107,7 +100,6 @@ func (self *Store) Query(query *Query) []*Note {
 			go func() {
 				pdfFilePath := strings.TrimPrefix(note.URI, "file://")
 				if pdfMatchesPattern(pdfFilePath, query.Needle) {
-					fmt.Println("Match found:", note.Title)
 					mx.Lock()
 					defer mx.Unlock()
 					keys = append(keys, key)
