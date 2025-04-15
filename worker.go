@@ -42,6 +42,7 @@ func (w *Worker) Run() {
 				for _, oldItem := range w.context.Data.Query(&Query{Haystack: notebook}) {
 					_, stillHave := data[oldItem.UUID]
 					if !stillHave {
+						haveUpdates = true
 						w.context.Data.Delete(NoteKey{Notebook: notebook, UUID: oldItem.UUID})
 					}
 				}
