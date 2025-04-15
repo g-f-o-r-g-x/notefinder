@@ -37,20 +37,20 @@ const (
 )
 
 type Note struct {
-	context    *Context
-	UUID       uint64
-	Title      string
-	Body       string
-	URI        string
-	MimeType   string
-	CreatedAt  time.Time
-	ModifiedAt time.Time
-	flags      uint32
-	Properties map[string]string
-	Type       NoteType
-	Markup     Markup
+	context        *Context
+	UUID           uint64
+	Title          string
+	Body           string
+	URI            string
+	MimeType       string
+	CreatedAt      time.Time
+	ModifiedAt     time.Time
+	flags          uint32
+	Properties     map[string]string
+	Type           NoteType
+	Markup         Markup
 	MatchingFields []string
-	Source     *Notebook
+	Source         *Notebook
 }
 
 func NewNote(ctx *Context, uuid uint64, title string) *Note {
@@ -62,8 +62,7 @@ func (this *Note) SameAs(other *Note) bool {
 	if other.ModifiedAt != this.ModifiedAt {
 		return false
 	}
-	return (
-		this.UUID == other.UUID &&
+	return (this.UUID == other.UUID &&
 		this.Title == other.Title &&
 		this.Body == other.Body &&
 		this.URI == other.URI &&
@@ -137,6 +136,16 @@ func (self *Note) mapping() map[string]*FieldDescription {
 	}
 }
 
+/* For use by Indexer */
+func (self *Note) Words() map[string]int {
+	/*
+		1. Iterate all Searchable fields + PDF content + recognized audio transcription
+		2. Stem every wor
+		3. Increment weight
+	*/
+	return map[string]int{}
+}
+
 func (self *Note) ToHV() *C.SV {
 	perl := self.context.interpreter.perl
 
@@ -147,8 +156,6 @@ func (self *Note) ToHV() *C.SV {
 
 		value := desc.Ptr
 		switch v := value.(type) {
-		case *uint32:
-
 		case *NoteType:
 			C.Perl_hv_store(perl, hv, cKey, C.I32(C.strlen(cKey)),
 				C.Perl_newSViv(perl, C.I64(*v)), 0)

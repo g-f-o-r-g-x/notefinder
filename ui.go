@@ -135,8 +135,7 @@ func (w *Window) Refresh() {
 			mu.Unlock()
 			status := fmt.Sprintf("%d results", nResults)
 			w.statusBar.SetText(status)
-			w.list.Refresh() // sic!
-			//w.window.Canvas().Refresh(w.list)
+			w.list.Refresh()
 		}
 	}()
 

@@ -22,10 +22,17 @@ compile:
 
 install: compile
 	mkdir -p $(DESTDIR)$(bindir)
-	cp ./$(NAME) $(DESTDIR)$(bindir)/$(NAME)
+	install -m 0755 $(NAME) $(DESTDIR)$(bindir)/$(NAME).new
+	mv -f $(DESTDIR)$(bindir)/$(NAME).new $(DESTDIR)$(bindir)/$(NAME)
 	mkdir -p $(DESTDIR)$(PERL_VENDORLIB)
 	cp ./Notefinder.pm $(DESTDIR)$(PERL_VENDORLIB)/Notefinder.pm
 	mkdir -p $(DESTDIR)$(applicationsdir)
 	cp notefinder.desktop $(DESTDIR)$(applicationsdir)/notefinder.desktop
 	mkdir -p $(DESTDIR)$(iconsdir)
 	cp images/notefinder.png $(DESTDIR)$(iconsdir)/notefinder.png
+
+uninstall:
+	rm -f $(DESTDIR)$(bindir)/$(NAME)
+	rm -f $(DESTDIR)$(PERL_VENDORLIB)/Notefinder.pm
+	rm -f $(DESTDIR)$(applicationsdir)/notefinder.desktop
+	rm -f $(DESTDIR)$(iconsdir)/notefinder.png

@@ -2,7 +2,8 @@ package main
 
 import (
 	"log"
-//	"reflect"
+	//	"reflect"
+	"sync"
 	"time"
 )
 
@@ -26,38 +27,43 @@ func (w *Worker) Run() {
 
 	ticker := time.NewTicker(5 * time.Second)
 	doWork := func() {
-		var haveUpdates bool
+		var wg sync.WaitGroup
+		wg.Add(len(w.context.Notebooks))
 		for _, notebook := range w.context.Notebooks {
-			data, err := notebook.LoadData()
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			for _, oldItem := range w.context.Data.Query(&Query{Haystack: notebook}) {
-				_, stillHave := data[oldItem.UUID]
-				if !stillHave {
-					w.context.Data.Delete(NoteKey{Notebook: notebook, UUID: oldItem.UUID})
+			go func() {
+				var haveUpdates bool
+				defer wg.Done()
+				data, err := notebook.LoadData()
+				if err != nil {
+					log.Println(err)
+					return
 				}
-			}
 
-			for uuid, item := range data {
-				key := NoteKey{Notebook: notebook, UUID: uuid}
-				existingItem, ok := w.context.Data.Get(key)
-				//if ok && reflect.DeepEqual(item, existingItem) { // FIXME: this doesn't work
-				if ok && item.SameAs(existingItem) {
-					continue
+				for _, oldItem := range w.context.Data.Query(&Query{Haystack: notebook}) {
+					_, stillHave := data[oldItem.UUID]
+					if !stillHave {
+						w.context.Data.Delete(NoteKey{Notebook: notebook, UUID: oldItem.UUID})
+					}
 				}
-				item.Source = notebook
 
-				w.context.Data.Put(key, item)
-				w.toInterp <- item
-				haveUpdates = true
-			}
+				for uuid, item := range data {
+					key := NoteKey{Notebook: notebook, UUID: uuid}
+					existingItem, ok := w.context.Data.Get(key)
+					if ok && item.SameAs(existingItem) {
+						continue
+					}
+					item.Source = notebook
+
+					w.context.Data.Put(key, item)
+					w.toInterp <- item
+					haveUpdates = true
+				}
+				if haveUpdates {
+					w.context.Window.Refresh()
+				}
+			}()
 		}
-		if haveUpdates {
-			w.context.Window.Refresh()
-		}
+		wg.Wait()
 	}
 
 	for {

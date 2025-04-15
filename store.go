@@ -20,6 +20,7 @@ type Query struct {
 type Store struct {
 	context *Context
 	data    map[NoteKey]*Note
+	mx      sync.RWMutex
 }
 
 func NewStore(ctx *Context) *Store {
@@ -27,19 +28,27 @@ func NewStore(ctx *Context) *Store {
 }
 
 func (self *Store) Get(key NoteKey) (*Note, bool) {
+	self.mx.RLock()
+	defer self.mx.RUnlock()
 	v, ok := self.data[key]
 	return v, ok
 }
 
 func (self *Store) Put(key NoteKey, note *Note) {
+	self.mx.Lock()
+	defer self.mx.Unlock()
 	self.data[key] = note
 }
 
 func (self *Store) Delete(key NoteKey) {
+	self.mx.Lock()
+	defer self.mx.Unlock()
 	delete(self.data, key)
 }
 
 func (self *Store) QueryStream(query *Query, out chan<- *Note) {
+	self.mx.RLock()
+	defer self.mx.RUnlock()
 	var wg sync.WaitGroup
 
 	for key, note := range self.data {
@@ -88,6 +97,8 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 }
 
 func (self *Store) Query(query *Query) []*Note {
+	self.mx.RLock()
+	defer self.mx.RUnlock()
 	res := make([]*Note, 0, len(self.data))
 	keys := make([]NoteKey, 0, len(self.data))
 
