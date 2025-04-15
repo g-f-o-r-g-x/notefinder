@@ -10,9 +10,19 @@ type NoteKey struct {
 	UUID     uint64
 }
 
+type QueryMethod int
+
+const (
+	QueryWithIndex QueryMethod = iota
+	QueryDirect
+	QueryRegexp
+	QueryComplex
+)
+
 type Query struct {
 	Needle   string
 	Haystack *Notebook
+	Method   QueryMethod
 }
 
 type Store struct {

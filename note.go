@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/url"
+	"regexp"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -10,6 +13,12 @@ import (
 #include <perl.h>
 */
 import "C"
+
+var (
+	/* Below handles a0 byte sequence as well (Unicode for &nbsp;) */
+	allWhiteSpace  = regexp.MustCompile(`(?:\s| |&nbsp;)+`)
+	allPunctuation = regexp.MustCompile(`^[[:punct:]\p{P}\p{S}“”‘’„‚«»…–—‐‑‑‒−­]+|[[:punct:]\p{P}\p{S}“”‘’„‚«»…–—‐‑‑‒−­]+$`)
+)
 
 const (
 	FlagArchived = 1 << 0
@@ -138,12 +147,28 @@ func (self *Note) mapping() map[string]*FieldDescription {
 
 /* For use by Indexer */
 func (self *Note) Words() map[string]int {
-	/*
-		1. Iterate all Searchable fields + PDF content + recognized audio transcription
-		2. Stem every wor
-		3. Increment weight
-	*/
-	return map[string]int{}
+	ret := make(map[string]int)
+	for _, desc := range self.mapping() {
+		if !desc.Searchable {
+			continue
+		}
+		value := desc.Ptr.(*string)
+
+		text, err := url.QueryUnescape(*value)
+		if err != nil {
+			continue
+		}
+		all := allWhiteSpace.Split(text, -1)
+		for _, w := range all {
+			cleanWord := strings.ToLower(allPunctuation.ReplaceAllString(w, ""))
+			if len([]rune(cleanWord)) < 3 {
+				continue
+			}
+			ret[cleanWord]++
+		}
+	}
+
+	return ret
 }
 
 func (self *Note) ToHV() *C.SV {

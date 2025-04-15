@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	//	"reflect"
 	"sync"
 	"time"
 )
@@ -31,8 +30,9 @@ func (w *Worker) Run() {
 		wg.Add(len(w.context.Notebooks))
 		for _, notebook := range w.context.Notebooks {
 			go func() {
-				var haveUpdates bool
 				defer wg.Done()
+
+				var haveUpdates bool
 				data, err := notebook.LoadData()
 				if err != nil {
 					log.Println(err)

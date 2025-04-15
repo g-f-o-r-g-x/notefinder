@@ -76,9 +76,14 @@ func (i *Interpreter) Destroy() {
 	runtime.UnlockOSThread()
 }
 
-func (i *Interpreter) Run(input <-chan *Note) {
+func (i *Interpreter) Run(input <-chan *Note, toIndex chan<- *Note) {
 	for data := range input {
 		C.call_print_note(i.perl, data.ToHV())
 		time.Sleep(1)
+
+		go func() {
+			toIndex <- data
+		}()
 	}
+	close(toIndex)
 }
