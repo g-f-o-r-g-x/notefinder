@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "golang.org/x/crypto/chacha20poly1305"
 	"net/url"
 	"regexp"
 	"strings"

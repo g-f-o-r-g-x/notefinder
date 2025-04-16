@@ -7,6 +7,7 @@ require (
 	github.com/cheggaaa/go-poppler v0.0.5
 	github.com/gabriel-vasile/mimetype v1.4.8
 	github.com/mattn/go-sqlite3 v1.14.27
+	golang.org/x/crypto v0.31.0
 	gopkg.in/ini.v1 v1.67.0
 )
 
