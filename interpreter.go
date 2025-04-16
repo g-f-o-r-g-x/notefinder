@@ -23,6 +23,8 @@ call_print_note(pTHX_ SV* note_ref)
 import "C"
 
 import (
+	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 	"unsafe"
@@ -30,21 +32,23 @@ import (
 
 type Interpreter struct {
 	context *Context
-	perl *C.PerlInterpreter
+	perl    *C.PerlInterpreter
 }
 
 func NewInterpreter(context *Context) *Interpreter {
 	runtime.LockOSThread()
 
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic("Cannot find user home directory: " + err.Error())
+	}
+	scriptPath := filepath.Join(home, ".config", "Notefinder.pl")
+	cScript := C.CString(scriptPath)
+	defer C.free(unsafe.Pointer(cScript))
+
 	args := []*C.char{
-		C.CString(""),
-		C.CString("-e"),
-		C.CString(`sub print_note {
-			my $note = shift;
-			for my $k (sort keys %$note) {
-				print "$k => $note->{$k}\n";
-			}
-		}`),
+		C.CString(""), // argv[0] dummy
+		cScript,       // argv[1] = script to run
 		nil,
 	}
 	defer func() {
@@ -97,8 +101,8 @@ func (i *Interpreter) Call(fn string, args ...*C.SV) {
 	i.context.Log("entering", currentFunction())
 	stackPtr := i.perl.Istack_sp
 
-//	C.Perl_push_scope(i.perl)
-//	C.Perl_savetmps(i.perl)
+	//	C.Perl_push_scope(i.perl)
+	//	C.Perl_savetmps(i.perl)
 
 	i.context.Log("stack pointer mark")
 	i.perl.Imarkstack_ptr = (*C.Stack_off_t)(unsafe.Pointer(
@@ -116,7 +120,7 @@ func (i *Interpreter) Call(fn string, args ...*C.SV) {
 	i.context.Log("growing stack")
 	for _, arg := range args {
 		stackPtr = (**C.SV)(unsafe.Pointer(
-		uintptr(unsafe.Pointer(i.perl.Istack_sp)) + unsafe.Sizeof(*i.perl.Istack_sp)))
+			uintptr(unsafe.Pointer(i.perl.Istack_sp)) + unsafe.Sizeof(*i.perl.Istack_sp)))
 		*stackPtr = arg
 		i.perl.Istack_sp = stackPtr
 	}
@@ -126,10 +130,10 @@ func (i *Interpreter) Call(fn string, args ...*C.SV) {
 	i.context.Log("calling function")
 	C.Perl_call_pv(i.perl, cFn, C.G_VOID)
 	i.context.Log("freeing tmps")
-//	if i.perl.Itmps_ix > i.perl.Itmps_floor {
-//		C.Perl_free_tmps(i.perl)
-//	}
-//	C.Perl_pop_scope(i.perl)
+	//	if i.perl.Itmps_ix > i.perl.Itmps_floor {
+	//		C.Perl_free_tmps(i.perl)
+	//	}
+	//	C.Perl_pop_scope(i.perl)
 	i.context.Log("returning from", currentFunction())
 }
 
