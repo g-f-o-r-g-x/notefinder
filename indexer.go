@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
-	// "time"
+//	"fmt"
+//
+// "time"
 )
 
 type Indexer struct {
@@ -16,10 +17,14 @@ func NewIndexer(ctx *Context) *Indexer {
 func (i *Indexer) Run(toIndex <-chan *Note) {
 	for {
 		note := <-toIndex
-		for k, hits := range note.Words() {
-			fmt.Printf("\"%s\": %d\n", k, hits)
-		}
-		fmt.Println("---------------------------------")
-		//time.Sleep(5 * time.Second)
+		/*
+			for k, hits := range note.Words() {
+					fmt.Printf("\"%s\": %d\n", k, hits)
+				}
+				fmt.Println("---------------------------------")
+				//time.Sleep(5 * time.Second)
+			}
+		*/
+		_ = note
 	}
 }

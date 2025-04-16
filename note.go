@@ -18,6 +18,7 @@ var (
 	/* Below handles a0 byte sequence as well (Unicode for &nbsp;) */
 	allWhiteSpace  = regexp.MustCompile(`(?:\s| |&nbsp;)+`)
 	allPunctuation = regexp.MustCompile(`^[[:punct:]\p{P}\p{S}“”‘’„‚«»…–—‐‑‑‒−­]+|[[:punct:]\p{P}\p{S}“”‘’„‚«»…–—‐‑‑‒−­]+$`)
+	rules          = NewRuleTable(strings.Split(defaultRules, "\n"))
 )
 
 const (
@@ -164,7 +165,7 @@ func (self *Note) Words() map[string]int {
 			if len([]rune(cleanWord)) < 3 {
 				continue
 			}
-			ret[cleanWord]++
+			ret[rules.Stem(cleanWord)]++
 		}
 	}
 

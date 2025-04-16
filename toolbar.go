@@ -72,6 +72,49 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
 			ctx.Requests <- RequestLoadData
 		}),
+		widget.NewToolbarAction(theme.SettingsIcon(), func() {
+			// General tab
+			generalTab := container.NewVBox(
+				container.New(layout.NewFormLayout(),
+					widget.NewLabel("Username:"), widget.NewEntry(),
+					widget.NewLabel("Enable Sync:"), widget.NewCheck("", nil),
+				),
+			)
+
+			// View tab
+			viewTab := container.NewVBox(
+				container.New(layout.NewFormLayout(),
+					widget.NewLabel("Theme:"), widget.NewSelect([]string{"Light", "Dark", "System"}, func(string) {}),
+					widget.NewLabel("Font Size:"), widget.NewEntry(),
+				),
+			)
+
+			// Search tab
+			searchTab := container.NewVBox(
+				container.New(layout.NewFormLayout(),
+					widget.NewLabel("Default Engine:"), widget.NewSelect([]string{"Google", "DuckDuckGo", "Bing"}, func(string) {}),
+					widget.NewLabel("Show Suggestions:"), widget.NewCheck("", nil),
+				),
+			)
+
+			// Notebooks tab
+			notebooksTab := container.NewVBox(
+				container.New(layout.NewFormLayout(),
+					widget.NewLabel("Default Notebook:"), widget.NewEntry(),
+					widget.NewLabel("Auto-Save Notes:"), widget.NewCheck("", nil),
+				),
+			)
+
+			tabs := container.NewAppTabs(
+				container.NewTabItem("General", generalTab),
+				container.NewTabItem("View", viewTab),
+				container.NewTabItem("Search", searchTab),
+				container.NewTabItem("Notebooks", notebooksTab),
+			)
+
+			// Optional: open as modal-like dialog
+			dialog.ShowCustom("Preferences", "Close", tabs, ctx.Window.window)
+		}),
 		widget.NewToolbarAction(theme.InfoIcon(), func() {
 			img := canvas.NewImageFromResource(appLogo)
 			img.FillMode = canvas.ImageFillContain

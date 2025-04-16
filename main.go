@@ -19,7 +19,7 @@ func main() {
 	}
 
 	log.Println(appName, appVersion, "started")
-	log.Println(strings.Repeat("-", 24))
+	log.Println(strings.Repeat("-", len(appName)+12))
 	ctx := NewContext()
 
 	toInterp := make(chan *Note, 1)
@@ -29,7 +29,7 @@ func main() {
 
 	/* Initialize within goroutine to lock to thread */
 	go func() {
-		ctx.interpreter = NewInterpreter()
+		ctx.interpreter = NewInterpreter(ctx)
 		defer ctx.interpreter.Destroy()
 		ctx.interpreter.Run(toInterp, toIndex)
 	}()
