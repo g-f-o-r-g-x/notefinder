@@ -17,6 +17,7 @@ BuildRequires: make
 BuildRequires: perl
 %else
 BuildRequires: perl-devel
+BuildRequires: perl-ExtUtils-Embed
 %endif
 
 %if 0%{?suse_version}
