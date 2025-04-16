@@ -8,6 +8,6 @@ output=$(rpmbuild -bb rpm/$NAME.spec)
 outfile=$(echo "$output" | grep -E ^Wrote | grep -v debug | cut -d " " -f2)
 
 rpmsign --addsign $outfile &&
-rpm --checksig $outfile &&
+rpm --checksig $outfile
 sudo zypper install $outfile &&
 exit 0

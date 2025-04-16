@@ -35,6 +35,10 @@ func (self *FileImplementation) CanWrite() (bool, error) {
 	return true, nil
 }
 
+func (self *FileImplementation) SupportedProperties() map[string]Writable {
+	return map[string]Writable{"Title": true, "URI": false, "Body": true}
+}
+
 func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 	mimetype.SetLimit(1024)
 

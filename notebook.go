@@ -1,10 +1,12 @@
 package main
 
+type Writable bool
 type Implementation interface {
 	LoadData() (map[uint64]*Note, error)
 	PutData(*Note) error
 	UpdateData(*Note, *Note) error
 	DeleteData(*Note) error
+	SupportedProperties() map[string]Writable
 	CanWrite() (bool, error)
 }
 

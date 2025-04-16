@@ -24,12 +24,13 @@ const (
 
 type Context struct {
 	base
-	Notebooks   map[string]*Notebook
-	Data        *Store
-	Application fyne.App
-	Window      *Window
-	interpreter *Interpreter
-	Requests    chan Request
+	Notebooks     map[string]*Notebook
+	Data          *Store
+	CommonStorage *CommonStorage
+	Application   fyne.App
+	Window        *Window
+	interpreter   *Interpreter
+	Requests      chan Request
 }
 
 func NewContext() *Context {
@@ -42,6 +43,7 @@ func NewContext() *Context {
 		Requests:    make(chan Request, 1),
 	}
 
+	ctx.CommonStorage = NewCommonStorage(ctx)
 	ctx.Data = NewStore(ctx)
 	ctx.Notebooks = readConfig(ctx)
 	ctx.Window = NewWindow(ctx)

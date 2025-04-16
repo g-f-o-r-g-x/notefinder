@@ -35,6 +35,10 @@ func (self *MozillaImplementation) CanWrite() (bool, error) {
 	return false, errors.New("Creating new bookmarks is not supported yet")
 }
 
+func (self *MozillaImplementation) SupportedProperties() map[string]Writable {
+	return map[string]Writable{"Title": false, "URI": false, "Body": false}
+}
+
 func (self *MozillaImplementation) LoadData() (map[uint64]*Note, error) {
 	data := make(map[uint64]*Note, 0)
 

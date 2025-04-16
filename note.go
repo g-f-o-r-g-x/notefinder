@@ -45,23 +45,25 @@ const (
 	NoteTypeBookmark
 	NoteTypeVoice
 	NoteTypeFile
+	NoteTypeTodoList
 )
 
 type Note struct {
-	context        *Context
-	UUID           uint64
-	Title          string
-	Body           string
-	URI            string
-	MimeType       string
-	CreatedAt      time.Time
-	ModifiedAt     time.Time
-	flags          uint32
-	Properties     map[string]string
-	Type           NoteType
-	Markup         Markup
-	MatchingFields []string
-	Source         *Notebook
+	context              *Context
+	Source               *Notebook
+	UUID                 uint64
+	Title                string
+	Body                 string
+	URI                  string
+	MimeType             string
+	CreatedAt            time.Time
+	ModifiedAt           time.Time
+	flags                uint32
+	Type                 NoteType
+	Markup               Markup
+	LastMatchingQuery    *Query
+	MatchingFields       []string
+	AdditionalProperties map[string]string
 }
 
 func NewNote(ctx *Context, uuid uint64, title string) *Note {
@@ -140,8 +142,8 @@ func (self *Note) mapping() map[string]*FieldDescription {
 		"UUID":     &FieldDescription{Ptr: &self.UUID},
 		"Title":    &FieldDescription{Ptr: &self.Title, Searchable: true},
 		"Body":     &FieldDescription{Ptr: &self.Body, Searchable: true},
-		"URI":      &FieldDescription{Ptr: &self.URI, Searchable: true},
-		"MimeType": &FieldDescription{Ptr: self.MimeType},
+		"URI":      &FieldDescription{Ptr: &self.URI},
+		"MimeType": &FieldDescription{Ptr: &self.MimeType},
 		"Type":     &FieldDescription{Ptr: &self.Type},
 		"flags":    &FieldDescription{Ptr: &self.flags},
 	}
