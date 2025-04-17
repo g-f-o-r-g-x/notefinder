@@ -134,5 +134,12 @@ func (self *FileImplementation) UpdateData(oldNote *Note, newNote *Note) error {
 }
 
 func (self *FileImplementation) DeleteData(note *Note) error {
-	return os.Remove(filepath.Join(self.path, note.Title))
+	return os.Remove(filepath.Join(self.path, filenameString(note)))
+}
+
+func filenameString(note *Note) string {
+	if !note.FlagIsSet(FlagArchived) {
+		return note.Title
+	}
+	return "." + note.Title
 }
