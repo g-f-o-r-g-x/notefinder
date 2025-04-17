@@ -107,7 +107,12 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 	return data, nil
 }
 
+func normalizeTitle(in string) string {
+	return strings.ReplaceAll(in, "/", "∕")
+}
+
 func (self *FileImplementation) PutData(note *Note) error {
+	note.Title = normalizeTitle(note.Title)
 	path := filepath.Join(self.path, note.Title)
 	_, err := os.Stat(path)
 	if err == nil {

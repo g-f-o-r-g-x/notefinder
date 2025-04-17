@@ -31,7 +31,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			currentNotebook := ctx.Window.CurrentWorkingNotebook()
 
 			if currentNotebook == nil {
-				dialog.ShowError(errors.New("Please select current working notebook"), ctx.Window.window)
+				dialog.ShowError(errors.New(l10n("Please select current working notebook")), ctx.Window.window)
 				return
 			}
 
@@ -125,8 +125,8 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				widget.NewLabelWithStyle(headerText, fyne.TextAlignCenter,
 					fyne.TextStyle{Bold: true}))
 
-			authorLabel := widget.NewLabel("Author: Sergey S.")
-			licenseLink := widget.NewHyperlink("License", &url.URL{
+			authorLabel := widget.NewLabel(l10n("Author: Sergey S."))
+			licenseLink := widget.NewHyperlink(l10n("License"), &url.URL{
 				Scheme: "https",
 				Host:   "opensource.org",
 				Path:   "/license/bsd-3-clause",
@@ -139,7 +139,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 
 			content := container.NewBorder(header, footer, nil, nil, img)
 
-			dialog.ShowCustom("About", "Close", content, ctx.Window.window)
+			dialog.ShowCustom(l10n("About"), l10n("Close"), content, ctx.Window.window)
 
 		}),
 	)
