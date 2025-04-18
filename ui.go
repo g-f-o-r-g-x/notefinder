@@ -113,7 +113,7 @@ func openNote(parent *Window, id int) {
 
 	tabItem := container.NewTabItemWithIcon(note.Title, noteIcon(note), c)
 	parent.tabs.Append(tabItem)
-	parent.tabs.SelectTab(tabItem)
+	parent.tabs.Select(tabItem)
 }
 
 func (w *Window) Refresh() {
@@ -255,7 +255,7 @@ func (w *Window) makeLayout() *fyne.Container {
 	w.list = makeList(w.context)
 
 	w.tabs = container.NewAppTabs(
-		container.NewTabItem("Home", w.list),
+		container.NewTabItemWithIcon("", theme.HomeIcon(), w.list),
 	)
 
 	return container.NewBorder(
