@@ -56,9 +56,15 @@ func (w *Window) SetQuery(query *Query) {
 }
 
 func openNote(parent *Window, id int) {
-	note, ok := parent.listItemIDToNote[id]
-	if !ok {
-		return
+	var note *Note
+	var ok bool
+	if id > 0 {
+		note, ok = parent.listItemIDToNote[id]
+		if !ok {
+			return
+		}
+	} else {
+		note = &Note{}
 	}
 
 	if note.URI != "" {
@@ -105,7 +111,9 @@ func openNote(parent *Window, id int) {
 	v := container.New(layout.NewStackLayout(), textViewer, textEditor)
 	c := container.NewBorder(tb, nil, nil, nil, v)
 
-	parent.tabs.Append(container.NewTabItemWithIcon(note.Title, noteIcon(note), c))
+	tabItem := container.NewTabItemWithIcon(note.Title, noteIcon(note), c)
+	parent.tabs.Append(tabItem)
+	parent.tabs.SelectTab(tabItem)
 }
 
 func (w *Window) Refresh() {

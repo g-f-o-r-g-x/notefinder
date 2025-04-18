@@ -22,7 +22,9 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			ctx.Window.SetQuery(&Query{Needle: ""})
 			ctx.Window.Refresh()
 		}),
-		widget.NewToolbarAction(theme.ContentAddIcon(), func() {}),
+		widget.NewToolbarAction(theme.ContentAddIcon(), func() {
+			openNote(ctx.Window, -1) 
+		}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
 			content := ctx.Window.ClipboardContent()
 			title := strings.TrimSuffix(shortText(content, 32), ":")
