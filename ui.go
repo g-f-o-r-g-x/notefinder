@@ -23,6 +23,7 @@ var uriError = errors.New("Unsupported URI")
 
 type Window struct {
 	window           fyne.Window
+	tabs             *container.AppTabs
 	list             *widget.List
 	searchInput      *widget.Entry
 	statusBar        *widget.Label
@@ -104,11 +105,7 @@ func openNote(parent *Window, id int) {
 	v := container.New(layout.NewStackLayout(), textViewer, textEditor)
 	c := container.NewBorder(tb, nil, nil, nil, v)
 
-	editorWindow := parent.app.NewWindow(note.Title)
-	editorWindow.SetContent(c)
-	editorWindow.CenterOnScreen()
-	editorWindow.Resize(fyne.NewSize(540, 460))
-	editorWindow.Show()
+	parent.tabs.Append(container.NewTabItemWithIcon(note.Title, noteIcon(note), c))
 }
 
 func (w *Window) Refresh() {
@@ -249,12 +246,16 @@ func (w *Window) makeLayout() *fyne.Container {
 
 	w.list = makeList(w.context)
 
+	w.tabs = container.NewAppTabs(
+		container.NewTabItem("Home", w.list),
+	)
+
 	return container.NewBorder(
 		tb,
 		notebookSelector,
 		nil,
 		nil,
-		w.list)
+		w.tabs)
 }
 
 func currentFunction() string {
