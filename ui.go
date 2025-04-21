@@ -140,6 +140,7 @@ func openNote(parent *Window, id int) {
 
 					}, parent.window)
 				form.Show()
+				parent.window.Canvas().Focus(entry)
 				textEditor.Hide()
 				textViewer.Show()
 			},
