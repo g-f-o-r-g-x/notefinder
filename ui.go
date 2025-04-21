@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -119,6 +120,7 @@ func (w *Window) Refresh() {
 			n := note
 			mu.Lock()
 			notes = append(notes, n)
+			sort.Slice(notes, func(i, j int) bool { return notes[i].UUID < notes[j].UUID })
 			mu.Unlock()
 			status := fmt.Sprintf("%d results", nResults)
 			w.statusBar.SetText(status)
