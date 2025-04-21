@@ -17,6 +17,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	ra "github.com/go-shiori/go-readability"
 )
 
 var uriError = errors.New("Unsupported URI")
@@ -73,6 +74,14 @@ func openNote(parent *Window, id int) {
 			strings.HasPrefix(note.URI, "file://") {
 			parsed, err := url.Parse(note.URI)
 			if err == nil {
+				go func() {
+					article, err := ra.FromURL(note.URI, 30*time.Second)
+					if err == nil {
+						parent.context.Log(article.TextContent)
+					} else {
+						parent.context.Log(err)
+					}
+				}()
 				fyne.CurrentApp().OpenURL(parsed)
 				return
 			}
