@@ -117,7 +117,7 @@ func (self *FileImplementation) PutData(note *Note) error {
 	_, err := os.Stat(path)
 	fmt.Println(note)
 	if err == nil {
-		err = fmt.Errorf(`"%s" already exists, cannot create new item`)
+		err = fmt.Errorf("\"%s\" already exists, cannot create new item", note.Title)
 		log.Println(err)
 		return err
 	}
