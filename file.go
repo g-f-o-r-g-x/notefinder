@@ -115,6 +115,7 @@ func (self *FileImplementation) PutData(note *Note) error {
 	note.Title = normalizeTitle(note.Title)
 	path := filepath.Join(self.path, note.Title)
 	_, err := os.Stat(path)
+	fmt.Println(note)
 	if err == nil {
 		err = fmt.Errorf(`"%s" already exists, cannot create new item`)
 		log.Println(err)

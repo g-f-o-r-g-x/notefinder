@@ -90,7 +90,12 @@ func openNote(parent *Window, id int) {
 	textEditor.MultiLine = true
 	textEditor.Wrapping = fyne.TextWrapWord
 	textEditor.SetText(note.Body)
-	textEditor.Hide()
+
+	if note.UUID != 0 {
+		textEditor.Hide()
+	} else {
+		textViewer.Hide()
+	}
 
 	tb := widget.NewToolbar(
 		widget.NewToolbarAction(
@@ -102,6 +107,39 @@ func openNote(parent *Window, id int) {
 		),
 		widget.NewToolbarAction(theme.DocumentSaveIcon(),
 			func() {
+				entry := widget.NewEntry()
+				var proposedTitle string
+				if textEditor.Text != "" {
+					lines := strings.SplitN(textEditor.Text, "\n", 1)
+					if len(lines) > 0 {
+						proposedTitle = shortText(lines[0], 32)
+						entry.SetText(proposedTitle)
+					}
+				}
+
+				form := dialog.NewForm("Enter title", "OK", "Cancel",
+					[]*widget.FormItem{
+						&widget.FormItem{Text: "", Widget: entry},
+					}, func(ok bool) {
+						if !ok || entry.Text == "" {
+							return
+						}
+						fmt.Println("ok:", ok, entry.Text)
+						note.Title = entry.Text
+						if nb := parent.CurrentWorkingNotebook(); nb != nil {
+							note.Set("Body", textEditor.Text, true)
+							nb.implementation.PutData(note)
+						}
+
+						/* TODO:
+						1. Force Worker to LoadData()
+						2. Perform SameAs on item
+						3. On errors save note to drafts
+						*/
+
+
+					}, parent.window)
+				form.Show()
 				textEditor.Hide()
 				textViewer.Show()
 			},
