@@ -24,7 +24,7 @@ func (w *Worker) Run() {
 			bookmarkConfig, NotebookAutoDiscovered)
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	doWork := func() {
 		var wg sync.WaitGroup
 		wg.Add(len(w.context.Notebooks))
