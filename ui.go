@@ -124,8 +124,8 @@ func (w *Window) Refresh() {
 			mu.Unlock()
 			status := fmt.Sprintf("%d results", nResults)
 			w.statusBar.SetText(status)
-			w.list.Refresh()
 		}
+		w.list.Refresh()
 	}()
 
 	w.list.Length = func() int {

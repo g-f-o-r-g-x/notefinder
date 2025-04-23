@@ -71,6 +71,8 @@ func implByName(ctx *Context, name string, config map[string]string) Implementat
 		return NewFileImplementation(ctx, config)
 	case "mozilla":
 		return NewMozillaImplementation(ctx, config)
+	case "google":
+		return NewGoogleImplementation(ctx, config)
 	default:
 		return nil
 	}
