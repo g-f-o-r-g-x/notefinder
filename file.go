@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -55,8 +55,13 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 			continue
 		}
 		fileName := string(f.Name())
+
+		if regexp.MustCompile(`(^|/)\..*\.sw[pon]$|\.sw[pon]$`).MatchString(fileName) {
+			continue
+		}
+
 		filePath := filepath.Join(self.path, fileName)
-		content, err := ioutil.ReadFile(filePath)
+		content, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -122,7 +127,7 @@ func (self *FileImplementation) PutData(note *Note) error {
 		return err
 	}
 
-	if err = ioutil.WriteFile(path, []byte(note.Body), 0644); err != nil {
+	if err = os.WriteFile(path, []byte(note.Body), 0644); err != nil {
 		log.Println(err)
 		return err
 	}

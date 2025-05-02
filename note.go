@@ -23,10 +23,11 @@ var (
 )
 
 const (
-	FlagArchived = 1 << 0
-	FlagReadOnly = 1 << 1
-	FlagNotify   = 1 << 2
-	FlagStarred  = 1 << 3
+	FlagArchived  = 1 << 0
+	FlagReadOnly  = 1 << 1
+	FlagNotify    = 1 << 2
+	FlagStarred   = 1 << 3
+	FlagEncrypted = 1 << 4
 )
 
 type Markup int
