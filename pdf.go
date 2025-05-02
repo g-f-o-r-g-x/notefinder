@@ -23,8 +23,13 @@ func pdfMatchesPattern(uri string, pattern string) bool {
 
 	for pageNum := range int(C.poppler_document_get_n_pages(doc)) {
 		page := C.poppler_document_get_page(doc, C.int(pageNum))
-		defer C.g_object_unref(C.gpointer(page))
-		pageText := C.GoString(C.poppler_page_get_text(page))
+		if page == nil {
+			continue
+		}
+		cPageText := C.poppler_page_get_text(page)
+		pageText := C.GoString(cPageText)
+		C.free(unsafe.Pointer(cPageText))
+		C.g_object_unref(C.gpointer(page))
 		if strings.Contains(
 			strings.ToLower(pageText),
 			strings.ToLower(pattern)) {

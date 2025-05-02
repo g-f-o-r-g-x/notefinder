@@ -90,6 +90,7 @@ func (self *Store) QueryStream(query *Query, out chan<- *Note) {
 			wg.Add(1)
 			go func(note *Note) {
 				defer wg.Done()
+				// FIXME: memory leak!
 				if pdfMatchesPattern(note.URI, query.Needle) {
 					note.MatchingFields = append(note.MatchingFields, "PDF content")
 					out <- note
