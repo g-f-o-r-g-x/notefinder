@@ -70,6 +70,12 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 		}
 
 		filePath := filepath.Join(self.path, fileName)
+		var stat syscall.Stat_t
+		if err := syscall.Stat(filePath, &stat); err != nil {
+			log.Println(err)
+			continue
+		}
+
 		content, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Println(err)
@@ -80,13 +86,6 @@ func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
 		if !bytes.ContainsRune(content, 0) {
 			body = string(content)
 		}
-
-		var stat syscall.Stat_t
-		if err := syscall.Stat(filePath, &stat); err != nil {
-			log.Println(err)
-			continue
-		}
-
 		var setArchived bool
 		var name string
 		if len(fileName) >= 2 && strings.HasPrefix(fileName, ".") {
