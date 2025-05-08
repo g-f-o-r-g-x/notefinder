@@ -23,12 +23,13 @@ type Notebook struct {
 	Data           map[uint64]*Note
 	implementation Implementation
 	Type           NotebookType
+	Enabled        bool
 }
 
 func NewNotebook(name string, impl Implementation, config map[string]string,
 	type_ NotebookType) *Notebook {
 	return &Notebook{Name: name, implementation: impl, Config: config,
-		Data: make(map[uint64]*Note), Type: type_}
+		Data: make(map[uint64]*Note), Type: type_, Enabled: true}
 }
 
 func (self *Notebook) LoadData() (map[uint64]*Note, error) {

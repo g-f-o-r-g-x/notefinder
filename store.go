@@ -45,6 +45,7 @@ func (self *Store) Get(key NoteKey) (*Note, bool) {
 func (self *Store) Put(key NoteKey, note *Note) {
 	self.mx.Lock()
 	defer self.mx.Unlock()
+	eventOnLoaded(note)
 	self.data[key] = note
 }
 

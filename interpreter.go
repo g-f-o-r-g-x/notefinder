@@ -108,7 +108,7 @@ func (i *Interpreter) Call(fn string, args ...*C.SV) {
 func (i *Interpreter) Run(input <-chan *Note, toIndex chan<- *Note) {
 	i.context.Log("entering", currentFunction())
 	for data := range input {
-		i.Call("Notefinder::Hook::OnNoteLoaded", data.ToHV())
+		//i.Call("Notefinder::Hook::OnNoteLoaded", data.ToHV())
 		time.Sleep(1)
 
 		go func() {

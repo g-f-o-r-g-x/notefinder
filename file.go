@@ -14,8 +14,9 @@ import (
 )
 
 type FileImplementation struct {
-	context *Context
-	path    string
+	context      *Context
+	path         string
+	useExtension bool
 }
 
 func NewFileImplementation(ctx *Context, config map[string]string) *FileImplementation {
