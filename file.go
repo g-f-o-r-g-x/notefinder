@@ -20,7 +20,8 @@ type FileImplementation struct {
 }
 
 func NewFileImplementation(ctx *Context, config map[string]string) *FileImplementation {
-	return &FileImplementation{context: ctx, path: config["path"]}
+	return &FileImplementation{context: ctx, path: config["path"],
+		useExtension: false}
 }
 
 func (self *FileImplementation) CanWrite() (bool, error) {
@@ -41,15 +42,22 @@ func (self *FileImplementation) SupportedProperties() map[string]Writable {
 }
 
 func (self *FileImplementation) LoadData() (map[uint64]*Note, error) {
-	mimetype.SetLimit(1024)
-
-	data := make(map[uint64]*Note, 0)
+	mimetype.SetLimit(16) // this was 1024, let's test
 
 	files, err := os.ReadDir(self.path)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+
+	nitems := 0
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		nitems++
+	}
+	data := make(map[uint64]*Note, nitems)
 
 	for _, f := range files {
 		if f.IsDir() {
