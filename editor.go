@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	fyne "fyne.io/fyne/v2"
@@ -52,12 +52,14 @@ func NewEditorTabItem(note *Note, parent *Window) *EditorTabItem {
 			func() {
 				entry := widget.NewEntry()
 				var proposedTitle string
-				if ti.editor.Text != "" {
+				if note.Title == "" && ti.editor.Text != "" {
 					lines := strings.SplitN(ti.editor.Text, "\n", 1)
 					if len(lines) > 0 {
 						proposedTitle = shortText(lines[0], 32)
 						entry.SetText(proposedTitle)
 					}
+				} else {
+					entry.SetText(note.Title)
 				}
 
 				form := dialog.NewForm("Enter title", "OK", "Cancel",
@@ -67,7 +69,6 @@ func NewEditorTabItem(note *Note, parent *Window) *EditorTabItem {
 						if !ok || entry.Text == "" {
 							return
 						}
-						fmt.Println("ok:", ok, entry.Text)
 						note.Title = entry.Text
 						parent.tabs.Selected().Text = note.Title
 						parent.tabs.Refresh()
@@ -76,6 +77,9 @@ func NewEditorTabItem(note *Note, parent *Window) *EditorTabItem {
 							note.Set("Body", ti.editor.Text, true)
 							nb.implementation.PutData(note)
 							go func() { ti.parent.context.Requests <- RequestLoadData }()
+						} else {
+							dialog.ShowError(errors.New("Please select notebook"), parent.window)
+							return
 						}
 
 						/* TODO:
