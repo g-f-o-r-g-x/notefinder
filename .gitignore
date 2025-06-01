@@ -24,3 +24,17 @@ go.work.sum
 
 # env file
 .env
+
+# Build system artifacts
+Makefile
+autom4te.cache/
+config.h
+config.h.in
+config.log
+config.status
+configure
+configure~
+
+# Autotools helper scripts
+install-sh
+missing
