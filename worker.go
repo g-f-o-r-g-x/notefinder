@@ -1,22 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
 )
 
 type Worker struct {
-	context  *Context
-	toInterp chan<- *Note
+	context *Context
+	mx      sync.Mutex
 }
 
-func NewWorker(ctx *Context, toInterp chan<- *Note) *Worker {
-	return &Worker{context: ctx, toInterp: toInterp}
+func NewWorker(ctx *Context) *Worker {
+	return &Worker{context: ctx}
 }
 
 func (w *Worker) Run() {
-	defer close(w.toInterp)
+	defer close(w.context.bus)
+	// FIXME: rework auto-configuration mechanism
 	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
 		w.context.Notebooks[name] = NewNotebook(name,
@@ -26,6 +28,8 @@ func (w *Worker) Run() {
 
 	ticker := time.NewTicker(10 * time.Second)
 	doWork := func() {
+		w.mx.Lock()
+		defer w.mx.Unlock()
 		var wg sync.WaitGroup
 		wg.Add(len(w.context.Notebooks))
 		for _, notebook := range w.context.Notebooks {
@@ -56,11 +60,11 @@ func (w *Worker) Run() {
 					item.Source = notebook
 
 					w.context.Data.Put(key, item)
-					w.toInterp <- item
+					w.context.bus <- item
 					haveUpdates = true
 				}
 				if haveUpdates {
-					w.context.Window.Refresh()
+					w.context.Window.Refresh() // FIXME: check if this is thread-safe at all
 				}
 			}()
 		}
@@ -76,6 +80,7 @@ func (w *Worker) Run() {
 			case RequestLoadData:
 				doWork()
 			case RequestStop:
+				fmt.Println("received graceful shutdown request")
 				return
 			}
 		}

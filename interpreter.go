@@ -12,16 +12,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 	"unsafe"
 )
 
 type Interpreter struct {
-	context *Context
-	perl    *C.PerlInterpreter
+	perl *C.PerlInterpreter
 }
 
-func NewInterpreter(context *Context) *Interpreter {
+func NewInterpreter() *Interpreter {
 	runtime.LockOSThread()
 
 	home, err := os.UserHomeDir()
@@ -103,17 +101,4 @@ func (i *Interpreter) Call(fn string, args ...*C.SV) {
 
 	C.Perl_free_tmps(i.perl) // FREETMPS
 	C.Perl_pop_scope(i.perl) // LEAVE
-}
-
-func (i *Interpreter) Run(input <-chan *Note, toIndex chan<- *Note) {
-	i.context.Log("entering", currentFunction())
-	for data := range input {
-		//i.Call("Notefinder::Hook::OnNoteLoaded", data.ToHV())
-		time.Sleep(1)
-
-		go func() {
-			toIndex <- data
-		}()
-	}
-	close(toIndex)
 }

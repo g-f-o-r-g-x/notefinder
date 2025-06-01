@@ -33,13 +33,13 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 			currentNotebook := ctx.Window.CurrentWorkingNotebook()
 
 			if currentNotebook == nil {
-				dialog.ShowError(errors.New(l10n("Please select current working notebook")), ctx.Window.window)
+				dialog.ShowError(errors.New(l10n("Please select current working notebook")), ctx.Window)
 				return
 			}
 
 			canWrite, reason := currentNotebook.CanWrite()
 			if !canWrite {
-				dialog.ShowError(reason, ctx.Window.window)
+				dialog.ShowError(reason, ctx.Window)
 				return
 			}
 
@@ -63,19 +63,18 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 						ctx.Window.selectedNote,
 					)
 					if err != nil {
-						dialog.ShowError(err, ctx.Window.window)
+						dialog.ShowError(err, ctx.Window)
 					}
 					ctx.Window.selectedNote = nil
 					ctx.Window.selectedListID = -1
 					ctx.Requests <- RequestLoadData
 				}
-			}, ctx.Window.window)
+			}, ctx.Window)
 		}),
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
 			ctx.Requests <- RequestLoadData
 		}),
 		widget.NewToolbarAction(theme.SettingsIcon(), func() {
-			// General tab
 			generalTab := container.NewVBox(
 				container.New(layout.NewFormLayout(),
 					widget.NewLabel("Username:"), widget.NewEntry(),
@@ -83,7 +82,6 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				),
 			)
 
-			// View tab
 			viewTab := container.NewVBox(
 				container.New(layout.NewFormLayout(),
 					widget.NewLabel("Theme:"), widget.NewSelect([]string{"Light", "Dark", "System"}, func(string) {}),
@@ -91,7 +89,6 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				),
 			)
 
-			// Search tab
 			searchTab := container.NewVBox(
 				container.New(layout.NewFormLayout(),
 					widget.NewLabel("Default Engine:"), widget.NewSelect([]string{"Google", "DuckDuckGo", "Bing"}, func(string) {}),
@@ -99,7 +96,6 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				),
 			)
 
-			// Notebooks tab
 			notebooksTab := container.NewVBox(
 				container.New(layout.NewFormLayout(),
 					widget.NewLabel("Default Notebook:"), widget.NewEntry(),
@@ -114,8 +110,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 				container.NewTabItem("Notebooks", notebooksTab),
 			)
 
-			// Optional: open as modal-like dialog
-			dialog.ShowCustom("Preferences", "Close", tabs, ctx.Window.window)
+			dialog.ShowCustom("Preferences", "Close", tabs, ctx.Window)
 		}),
 		widget.NewToolbarAction(theme.InfoIcon(), func() {
 			img := canvas.NewImageFromResource(appLogo)
@@ -141,7 +136,7 @@ func makeToolbar(ctx *Context) *widget.Toolbar {
 
 			content := container.NewBorder(header, footer, nil, nil, img)
 
-			dialog.ShowCustom(l10n("About"), l10n("Close"), content, ctx.Window.window)
+			dialog.ShowCustom(l10n("About"), l10n("Close"), content, ctx.Window)
 
 		}),
 	)

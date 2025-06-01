@@ -5,6 +5,7 @@ import (
 	"log"
 	"os/user"
 	"path/filepath"
+	"strings"
 
 	fyne "fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -30,16 +31,19 @@ type Context struct {
 	Application   fyne.App
 	Window        *Window
 	interpreter   *Interpreter
+	bus           chan *Note
 	Requests      chan Request
 }
 
-func NewContext() *Context {
+func NewContext(interpreter *Interpreter) *Context {
 	a := app.NewWithID("org.notefinder.app")
 	ctx := &Context{
 		base: base{
 			context: context.Background(),
 		},
+		interpreter: interpreter,
 		Application: a,
+		bus:         make(chan *Note, 1),
 		Requests:    make(chan Request, 1),
 	}
 
@@ -50,9 +54,13 @@ func NewContext() *Context {
 	return ctx
 }
 
-func (ctx *Context) Run() {
+func (ctx *Context) Run() int {
+	log.Println(appName, appVersion, "started")
+	log.Println(strings.Repeat("-", len(appName)+12))
+
 	ctx.Window.Show()
 	close(ctx.Requests)
+	return 0
 }
 
 func (ctx *Context) Log(l ...any) {

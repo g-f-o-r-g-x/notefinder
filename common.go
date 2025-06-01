@@ -3,9 +3,10 @@ package main
 import fyne "fyne.io/fyne/v2"
 
 const (
-	appName    = "Notefinder"
-	appVersion = 0.1
-	configPath = ".config/notefinder.ini"
+	appName     = "Notefinder"
+	appVersion  = 0.1
+	configPath  = ".config/notefinder.ini"
+	doProfiling = false
 )
 
 var appLogo = &fyne.StaticResource{

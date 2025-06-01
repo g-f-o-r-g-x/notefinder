@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -24,7 +23,9 @@ import (
 var uriError = errors.New("Unsupported URI")
 
 type Window struct {
-	window           fyne.Window
+	fyne.Window
+
+	mx               sync.Mutex
 	tabs             *container.AppTabs
 	list             *widget.List
 	searchInput      *widget.Entry
@@ -41,8 +42,20 @@ type Window struct {
 
 func NewWindow(ctx *Context) *Window {
 	mainWindow := ctx.Application.NewWindow(appName)
-	w := &Window{window: mainWindow, statusBar: widget.NewLabel(""), app: ctx.Application, context: ctx,
-		listItemIDToNote: make(map[widget.ListItemID]*Note), query: &Query{Needle: ""}}
+
+	w := &Window{
+		Window:           mainWindow,
+		statusBar:        widget.NewLabel(""),
+		app:              ctx.Application,
+		context:          ctx,
+		listItemIDToNote: make(map[widget.ListItemID]*Note),
+		query:            &Query{Needle: ""},
+	}
+
+	w.SetCloseIntercept(func() {
+		ctx.Requests <- RequestStop
+		w.Close()
+	})
 
 	w.selectedListID = -1
 	return w
@@ -57,49 +70,9 @@ func (w *Window) SetQuery(query *Query) {
 	w.searchInput.SetText(query.Needle)
 }
 
-func openNote(parent *Window, id int) {
-	var note *Note
-	var ok bool
-	if id > 0 {
-		note, ok = parent.listItemIDToNote[id]
-		if !ok {
-			return
-		}
-	} else {
-		note = &Note{}
-	}
-
-	if note.URI != "" {
-		if strings.HasPrefix(note.URI, "https://") ||
-			strings.HasPrefix(note.URI, "http://") ||
-			strings.HasPrefix(note.URI, "file://") {
-			parsed, err := url.Parse(note.URI)
-			if err == nil {
-				go func() {
-					article, err := ra.FromURL(note.URI, 30*time.Second)
-					if err == nil {
-						parent.context.Log(article.TextContent)
-					} else {
-						parent.context.Log(err)
-					}
-				}()
-				fyne.CurrentApp().OpenURL(parsed)
-				return
-			}
-			dialog.ShowError(uriError, parent.window)
-			return
-		} else {
-			dialog.ShowError(uriError, parent.window)
-			return
-		}
-	}
-
-	ti := NewEditorTabItem(note, parent)
-	parent.tabs.Append(ti.tabItem)
-	parent.tabs.Select(ti.tabItem)
-}
-
 func (w *Window) Refresh() {
+	w.mx.Lock()
+	defer w.mx.Unlock()
 	currentNotebook := w.CurrentWorkingNotebook()
 	if currentNotebook != nil && w.filterByNotebook {
 		w.query.Haystack = currentNotebook
@@ -183,26 +156,68 @@ func (w *Window) Refresh() {
 }
 
 func (w *Window) ClipboardContent() string {
-	return w.window.Clipboard().Content()
+	return w.Clipboard().Content()
 }
 
 func (w *Window) Show() {
-	w.window.SetContent(w.makeLayout())
-	w.window.SetMaster()
-	w.window.Resize(fyne.NewSize(800, 600))
-	w.window.CenterOnScreen()
+	w.SetContent(w.makeLayout())
+	w.SetMaster()
+	w.Resize(fyne.NewSize(800, 600))
+	w.CenterOnScreen()
 
 	ctrlQ := &desktop.CustomShortcut{KeyName: fyne.KeyQ, Modifier: fyne.KeyModifierControl}
-	w.window.Canvas().AddShortcut(ctrlQ, func(sc fyne.Shortcut) {
+	w.Canvas().AddShortcut(ctrlQ, func(sc fyne.Shortcut) {
 		w.app.Quit()
 	})
 
 	w.context.Requests <- RequestLoadData
-	w.window.ShowAndRun()
+	w.ShowAndRun()
 }
 
 func (w *Window) CurrentWorkingNotebook() *Notebook {
 	return w.notebook
+}
+
+func openNote(parent *Window, id int) {
+	var note *Note
+	var ok bool
+	if id > 0 {
+		note, ok = parent.listItemIDToNote[id]
+		if !ok {
+			return
+		}
+	} else {
+		note = &Note{}
+	}
+
+	if note.URI != "" {
+		if strings.HasPrefix(note.URI, "https://") ||
+			strings.HasPrefix(note.URI, "http://") ||
+			strings.HasPrefix(note.URI, "file://") {
+			parsed, err := url.Parse(note.URI)
+			if err == nil {
+				go func() {
+					article, err := ra.FromURL(note.URI, 30*time.Second)
+					if err == nil {
+						parent.context.Log(article.TextContent)
+					} else {
+						parent.context.Log(err)
+					}
+				}()
+				fyne.CurrentApp().OpenURL(parsed)
+				return
+			}
+			dialog.ShowError(uriError, parent)
+			return
+		} else {
+			dialog.ShowError(uriError, parent)
+			return
+		}
+	}
+
+	ti := NewEditorTabItem(note, parent)
+	parent.tabs.Append(ti.tabItem)
+	parent.tabs.Select(ti.tabItem)
 }
 
 func (w *Window) makeLayout() *fyne.Container {
@@ -248,20 +263,6 @@ func (w *Window) makeLayout() *fyne.Container {
 		nil,
 		nil,
 		w.tabs)
-}
-
-func currentFunction() string {
-	pc, _, _, ok := runtime.Caller(1)
-	if !ok {
-		return "?"
-	}
-
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return "?"
-	}
-
-	return fn.Name()
 }
 
 func (w *Window) makeSearchInput() *widget.Entry {

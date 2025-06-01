@@ -78,7 +78,7 @@ func NewEditorTabItem(note *Note, parent *Window) *EditorTabItem {
 							nb.implementation.PutData(note)
 							go func() { ti.parent.context.Requests <- RequestLoadData }()
 						} else {
-							dialog.ShowError(errors.New("Please select notebook"), parent.window)
+							dialog.ShowError(errors.New("Please select notebook"), parent)
 							return
 						}
 
@@ -88,9 +88,9 @@ func NewEditorTabItem(note *Note, parent *Window) *EditorTabItem {
 						3. On errors save note to drafts
 						*/
 
-					}, parent.window)
+					}, parent)
 				form.Show()
-				parent.window.Canvas().Focus(entry)
+				parent.Canvas().Focus(entry)
 			},
 		),
 	)
