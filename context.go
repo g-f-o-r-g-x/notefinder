@@ -28,22 +28,24 @@ type Context struct {
 	Notebooks     map[string]*Notebook
 	Data          *Store
 	CommonStorage *CommonStorage
-	Application   fyne.App
-	Window        *Window
-	interpreter   *Interpreter
-	bus           chan *Note
-	Requests      chan Request
+
+	Application fyne.App
+	Window      *Window
+	Interpreter *Interpreter
+
+	Bus      chan *Note
+	Requests chan Request
 }
 
-func NewContext(interpreter *Interpreter) *Context {
+func NewContext(Interpreter *Interpreter) *Context {
 	a := app.NewWithID("org.notefinder.app")
 	ctx := &Context{
 		base: base{
 			context: context.Background(),
 		},
-		interpreter: interpreter,
+		Interpreter: Interpreter,
 		Application: a,
-		bus:         make(chan *Note, 1),
+		Bus:         make(chan *Note, 1),
 		Requests:    make(chan Request, 1),
 	}
 

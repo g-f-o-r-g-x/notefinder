@@ -17,7 +17,7 @@ func NewWorker(ctx *Context) *Worker {
 }
 
 func (w *Worker) Run() {
-	defer close(w.context.bus)
+	defer close(w.context.Bus)
 	// FIXME: rework auto-configuration mechanism
 	for name, bookmarkFile := range getMozillaFiles() {
 		bookmarkConfig := map[string]string{"path": bookmarkFile}
@@ -60,7 +60,7 @@ func (w *Worker) Run() {
 					item.Source = notebook
 
 					w.context.Data.Put(key, item)
-					w.context.bus <- item
+					w.context.Bus <- item
 					haveUpdates = true
 				}
 				if haveUpdates {

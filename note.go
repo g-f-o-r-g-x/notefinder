@@ -177,7 +177,7 @@ func (self *Note) Words() map[string]int {
 }
 
 func (self *Note) ToHV() *C.SV {
-	perl := self.context.interpreter.perl
+	perl := self.context.Interpreter.perl
 
 	hv := C.Perl_newHV(perl)
 	for key, desc := range self.mapping() {

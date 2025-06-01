@@ -16,7 +16,7 @@ func NewConsumer(ctx *Context) *Consumer {
 
 func (c *Consumer) Run() {
 	for {
-		note, ok := <-c.context.bus
+		note, ok := <-c.context.Bus
 		if !ok {
 			return
 		}
