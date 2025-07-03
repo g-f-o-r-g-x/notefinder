@@ -117,9 +117,11 @@ func (w *Window) Refresh() {
 			sort.Slice(notes, func(i, j int) bool { return notes[i].UUID < notes[j].UUID })
 			mu.Unlock()
 			status := fmt.Sprintf("%d results", nResults)
-			w.statusBar.SetText(status)
+			fyne.Do(func() {
+				w.statusBar.SetText(status)
+				w.list.Refresh()
+			})
 		}
-		w.list.Refresh()
 	}()
 
 	w.list.Length = func() int {
@@ -148,7 +150,9 @@ func (w *Window) Refresh() {
 
 		title.TextStyle.Bold = (i == w.selectedListID)
 		icon.SetResource(noteIcon(note))
-		title.SetText(note.Title)
+		fyne.Do(func() {
+			title.SetText(note.Title)
+		})
 		matchesText := fmt.Sprintf(" (matches:  %s)", strings.Join(note.MatchingFields, ", "))
 
 		if note.Body != "" {
@@ -173,7 +177,9 @@ func (w *Window) Refresh() {
 
 	}
 
-	w.list.Refresh()
+	fyne.Do(func() {
+		w.list.Refresh()
+	})
 }
 
 func (w *Window) ClipboardContent() string {
