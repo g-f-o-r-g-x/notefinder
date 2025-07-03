@@ -62,7 +62,15 @@ func (self *Store) QueryStream(query *types.Query, out chan<- *types.Note) {
 				continue
 			}
 			value := desc.Ptr.(*string)
-			if strings.Contains(strings.ToLower(*value), strings.ToLower(query.Needle)) {
+			var haystack, needle string
+			if !query.MatchCase {
+				haystack = strings.ToLower(*value)
+				needle = strings.ToLower(query.Needle)
+			} else {
+				haystack = *value
+				needle = query.Needle
+			}
+			if strings.Contains(haystack, needle) {
 				note.MatchingFields = append(note.MatchingFields, key)
 
 				if !matchFound {

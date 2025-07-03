@@ -15,7 +15,8 @@ const (
 )
 
 type Query struct {
-	Needle   string
-	Haystack *Notebook
-	Method   QueryMethod
+	Needle    string
+	Haystack  *Notebook
+	Method    QueryMethod
+	MatchCase bool
 }

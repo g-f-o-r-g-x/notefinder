@@ -58,6 +58,7 @@ type Window struct {
 	selectedNote     *types.Note
 	selectedListID   int
 	filterByNotebook bool
+	matchCase        bool
 	listItemIDToNote map[widget.ListItemID]*types.Note
 }
 
@@ -100,6 +101,7 @@ func (w *Window) Refresh() {
 	} else {
 		w.query.Haystack = nil
 	}
+	w.query.MatchCase = w.matchCase
 
 	ch := make(chan *types.Note)
 	var mu sync.Mutex
@@ -280,6 +282,10 @@ func (w *Window) makeLayout() *fyne.Container {
 			w.filterByNotebook = value
 			w.selectedListID = -1
 			w.selectedNote = nil
+			w.Refresh()
+		}),
+		widget.NewCheck("Match case", func(value bool) {
+			w.matchCase = value
 			w.Refresh()
 		}),
 	)
