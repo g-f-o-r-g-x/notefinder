@@ -26,6 +26,8 @@ mv "${APP_NAME}.app" "${STAGING_DIR}/"
 
 cd ../..
 
+exit 0
+
 echo "💽 Creating DMG using hdiutil..."
 
 # Create the DMG
