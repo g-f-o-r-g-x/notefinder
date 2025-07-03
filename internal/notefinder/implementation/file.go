@@ -42,7 +42,7 @@ func (self *FileImplementation) SupportedProperties() map[string]types.Writable 
 	return map[string]types.Writable{"Title": true, "URI": false, "Body": true}
 }
 
-func processDir(path string, dst map[uint64]*types.Note) error {
+func processDir(path string, dst map[uint64]*types.Note, paths []string) error {
 	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Println(err)
@@ -51,7 +51,8 @@ func processDir(path string, dst map[uint64]*types.Note) error {
 
 	for _, f := range files {
 		if f.IsDir() {
-			err = processDir(filepath.Join(path, string(f.Name())), dst)
+			paths = append(paths, string(f.Name()))
+			err = processDir(filepath.Join(path, string(f.Name())), dst, paths)
 			if err != nil {
 				log.Println(err)
 			}
@@ -108,6 +109,10 @@ func processDir(path string, dst map[uint64]*types.Note) error {
 				note.MimeType = mime.String()
 			}
 		}
+		if len(paths) > 0 {
+			note.Tags = make([]string, len(paths))
+			copy(note.Tags, paths)
+		}
 
 		dst[stat.Ino] = note
 	}
@@ -118,7 +123,8 @@ func processDir(path string, dst map[uint64]*types.Note) error {
 func (self *FileImplementation) LoadData() (map[uint64]*types.Note, error) {
 	mimetype.SetLimit(16) // this was 1024, let's test
 	data := make(map[uint64]*types.Note, 0)
-	if err := processDir(self.path, data); err != nil {
+	paths := make([]string, 0)
+	if err := processDir(self.path, data, paths); err != nil {
 		return nil, err
 	}
 

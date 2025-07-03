@@ -48,6 +48,7 @@ var (
 
 func words(item *types.Note) map[string]int {
 	ret := make(map[string]int)
+	return ret
 	for _, desc := range item.Mapping() {
 		if !desc.Searchable {
 			continue

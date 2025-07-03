@@ -37,6 +37,7 @@ type Note struct {
 	UUID                 uint64
 	Title                string
 	Body                 string
+	Tags                 []string
 	URI                  string
 	MimeType             string
 	CreatedAt            time.Time
@@ -51,7 +52,8 @@ type Note struct {
 
 func NewNote(uuid uint64, title string) *Note {
 	return &Note{UUID: uuid, Title: title,
-		MatchingFields: make([]string, 0, 4)}
+		MatchingFields: make([]string, 0, 4),
+		Tags:           make([]string, 0, 0)}
 }
 
 func (this *Note) SameAs(other *Note) bool {
