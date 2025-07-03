@@ -42,35 +42,29 @@ func (self *FileImplementation) SupportedProperties() map[string]types.Writable 
 	return map[string]types.Writable{"Title": true, "URI": false, "Body": true}
 }
 
-func (self *FileImplementation) LoadData() (map[uint64]*types.Note, error) {
-	mimetype.SetLimit(16) // this was 1024, let's test
-
-	files, err := os.ReadDir(self.path)
+func processDir(path string, dst map[uint64]*types.Note) error {
+	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return err
 	}
-
-	nitems := 0
-	for _, f := range files {
-		if f.IsDir() {
-			continue
-		}
-		nitems++
-	}
-	data := make(map[uint64]*types.Note, nitems)
 
 	for _, f := range files {
 		if f.IsDir() {
+			err = processDir(filepath.Join(path, string(f.Name())), dst)
+			if err != nil {
+				log.Println(err)
+			}
 			continue
 		}
 		fileName := string(f.Name())
 
+		// vim temporary files
 		if regexp.MustCompile(`(^|/)\..*\.sw[pon]$|\.sw[pon]$`).MatchString(fileName) {
 			continue
 		}
 
-		filePath := filepath.Join(self.path, fileName)
+		filePath := filepath.Join(path, fileName)
 		var stat syscall.Stat_t
 		if err := syscall.Stat(filePath, &stat); err != nil {
 			log.Println(err)
@@ -115,7 +109,17 @@ func (self *FileImplementation) LoadData() (map[uint64]*types.Note, error) {
 			}
 		}
 
-		data[stat.Ino] = note
+		dst[stat.Ino] = note
+	}
+
+	return nil
+}
+
+func (self *FileImplementation) LoadData() (map[uint64]*types.Note, error) {
+	mimetype.SetLimit(16) // this was 1024, let's test
+	data := make(map[uint64]*types.Note, 0)
+	if err := processDir(self.path, data); err != nil {
+		return nil, err
 	}
 
 	return data, nil
