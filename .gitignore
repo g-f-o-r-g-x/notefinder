@@ -34,6 +34,10 @@ config.log
 config.status
 configure
 configure~
+.DS_Store
+*.dmg
+build/
+
 
 # Autotools helper scripts
 install-sh
