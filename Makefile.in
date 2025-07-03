@@ -18,7 +18,7 @@ all: compile
 compile:
 	CGO_CFLAGS="$(CGO_CFLAGS) -Wno-builtin-macro-redefined" \
 	CGO_LDFLAGS="$(CGO_LDFLAGS)" \
-	go build -o $(NAME) .
+	go build -o $(NAME) cmd/$(NAME)/main.go
 
 install: compile
 	mkdir -p $(DESTDIR)$(bindir)
